@@ -1,0 +1,25 @@
+{
+  "name": "pillo-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M4RCKIT0S/Pillo-Back.git"
+  },
+  "author": "M4RCKIT0S",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/M4RCKIT0S/Pillo-Back/issues"
+  },
+  "homepage": "https://github.com/M4RCKIT0S/Pillo-Back#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.13.5"
+  }
+}
