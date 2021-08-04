@@ -2,6 +2,10 @@ const User = require('../Models/user');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+
+dotenv.config();
 
 //Services
 const emailServices = require('../Services/email');
@@ -27,7 +31,9 @@ function register(req, res){
                 email: req.body.email,
                 password: passwordHashed,
                 phoneNumber: req.body.phoneNumber, 
-                adress: req.body.adress
+                adress: req.body.adress,
+                city: req.body.city,
+                postalCode: req.body.postalCode
             });
             user.save((errorSavingUser, userSaved)=>{
                 if(errorSavingUser) return res.status(400).send({message:'Error saving user, please try again.',error:errorSavingUser ,success: false, date: Date()});
@@ -48,6 +54,7 @@ function register(req, res){
  */
 function validateUser(req, res){
     const {token} = req.query;
+    console.log(token);
     jwt.verify(token,process.env.token_userVerification,(err, decoded)=>{
         if(err) return res.status(400).send({message:'Invalid token. Please ask for a new token.', error:err, success: false, date: Date()});
         User.findByIdAndUpdate(decoded.userId, {$set:{userType: 'basicUserVerified'}},{new: true},(error, userUpdated)=>{
@@ -74,8 +81,21 @@ function login(req, res){
             }
     });
 }
+/**
+ * Permite a un usuario eliminar su cuenta
+ * @param {*} req 
+ * @param {*} res 
+ */
+function deleteUser(req, res){
+    const {id} = req.userData;
+    User.findOneAndDelete({_id: id},(err, userDeleted)=>{
+        if(err || !userDeleted) return res.status(400).send({message:'Couldn`t find user.', success: false, date: Date()});
+        return res.status(200).send({message:'User deleted successfully.', userDeleted, success: true, date:Date()});
+    });
+}
 module.exports = {
     register,
     validateUser,
-    login
+    login,
+    deleteUser
 }

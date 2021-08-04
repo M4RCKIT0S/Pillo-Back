@@ -1,5 +1,7 @@
 const express = require('express');
 const userControllers = require('../Controllers/userControllers');
+//Middleware que comprueba el nivel de autenticación del usuario.
+const checkAuth = require('../Middlewares/checkAuth');
 
 const router = express.Router(); 
 
@@ -9,5 +11,7 @@ router.post('/register', userControllers.register);
 router.patch('/validateEmail', userControllers.validateUser);
 //Login del usuario, se le entrega un token
 router.post('/login', userControllers.login);
+//Delete del usuario que esta logeado;
+router.delete('/deleteUser', checkAuth.checkLoggedIn, userControllers.deleteUser);
 
 module.exports = router;

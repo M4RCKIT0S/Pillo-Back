@@ -3,12 +3,10 @@ const mongoose = require('mongoose');
 const userSchema = mongoose.Schema({
     name:{
         type: String,
-        required: true,
         validate:[validateNormalString, 'Please fill a valid name.']
     },
     surname:{
         type: String,
-        required: true,
         validate: [validateNormalString, 'Please fill a valid surname.']
     },
     email:{
@@ -20,7 +18,6 @@ const userSchema = mongoose.Schema({
     password:{
         type: String,
         required: true
-
     },
     userType:{
         type: String,
@@ -33,7 +30,13 @@ const userSchema = mongoose.Schema({
     },
     adress:{
         type: String,
-        required: true
+    },
+    city:{
+        type: String,
+    },
+    postalCode:{
+        type: String,
+        validate: [validatePostalCode, "Please fill a valid postal code."]
     }
 
 },{
@@ -48,6 +51,9 @@ function validateNormalString(string){
 function validateEmail(email){
     var emailRegex = /[a-z0-9!#$%&'+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'+/=?^_`{|}~-]+)@(?:[a-z0-9](?:[a-z0-9-][a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/m;
     return emailRegex.test(email);
+}
+function validatePostalCode(postalCode){
+    return postalCode.match(/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/)
 }
 
 module.exports = mongoose.model('User', userSchema);
