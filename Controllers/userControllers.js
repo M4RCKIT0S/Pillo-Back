@@ -54,7 +54,6 @@ function register(req, res){
  */
 function validateUser(req, res){
     const {token} = req.query;
-    console.log(token);
     jwt.verify(token,process.env.token_userVerification,(err, decoded)=>{
         if(err) return res.status(400).send({message:'Invalid token. Please ask for a new token.', error:err, success: false, date: Date()});
         User.findByIdAndUpdate(decoded.userId, {$set:{userType: 'basicUserVerified'}},{new: true},(error, userUpdated)=>{
@@ -110,10 +109,21 @@ async function getUser(req, res){
         return res.status(500).send({message:'Internal server error.', success: false, date:Date()});
     }
 }
+//Funcion que permite al administrador obtener todos los usuarios
+async function getAllUsers(req, res){
+    try{
+        const users = await User.find({});
+        if(!users) return res.status(404).send({message:'No users found.', date:Date()});
+        return res.status(200).json({message:'Users found successfully.', users, success: true, date:Date()});
+    }catch(error){
+        return res.status(500).send({message:'Internal server error.', success: false, date:Date()});
+    }
+}
 module.exports = {
     register,
     validateUser,
     login,
     deleteUser,
-    getUser
+    getUser,
+    getAllUsers
 }

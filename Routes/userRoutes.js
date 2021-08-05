@@ -15,5 +15,6 @@ router.post('/login', userControllers.login);
 router.delete('/deleteUser', checkAuth.checkLoggedIn, userControllers.deleteUser);
 //Get del usuario logeado
 router.get('/getUser', checkAuth.checkLoggedIn, userControllers.getUser);
-
+//Get de todos los usuarios del sistema, solo puede ser ejecutado por un administrador logeado
+router.get('/getAllUsers', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, userControllers.getAllUsers);
 module.exports = router;
