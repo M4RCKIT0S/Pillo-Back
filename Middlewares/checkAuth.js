@@ -14,4 +14,12 @@ module.exports = {
             return res.status(400).send({message:'Error validating token. Please log in.', error, success: false, date:Date()});
         }
     },
+    checkIfAdmin: function checkAdmin(req, res, next) {
+        const {userType} = req.userData;
+        if(userType==="admin"){
+            next();
+        }else{
+            return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+        }
+    }
 }

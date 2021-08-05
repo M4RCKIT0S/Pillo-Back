@@ -29,16 +29,13 @@ const userSchema = mongoose.Schema({
         required: true,
     },
     adress:{
-        type: String,
+        street: String,
+        city: String,
+        postalCode:{
+            type: String,
+            validate: [validatePostalCode, "Please fill a valid postal code."]
+        }
     },
-    city:{
-        type: String,
-    },
-    postalCode:{
-        type: String,
-        validate: [validatePostalCode, "Please fill a valid postal code."]
-    }
-
 },{
     timestamps: true,
 });
