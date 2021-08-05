@@ -21,5 +21,13 @@ module.exports = {
         }else{
             return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
         }
+    },
+    checkIfShopAdmin: function checkShopAdmin(req,res, next){
+        const {userType} = req.userData;
+        if(userType==="shopAdmin"){
+            next();
+        }else{
+            return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+        }
     }
 }
