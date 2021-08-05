@@ -136,6 +136,10 @@ async function updateUser(req, res){
     for(var i = 0; i<entries.length; i++){
         query[entries[i]] = Object.values(req.body)[i];
     }
+    if(req.body.email){
+        emailServices.sendVerificationEmail(req.body.email, userId);
+        query = {...query, userType:'basicUserNotVerified'};
+    }
         const user = await User.findByIdAndUpdate(userId,{$set:query},{runValidators: true, new: true});
         if(!user) return res.status(404).send({message:'User not found.', success: false, date:Date()});
         return res.status(200).send({message:'User updated successfully.', user, success: true, date:Date()});
