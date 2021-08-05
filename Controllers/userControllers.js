@@ -93,9 +93,27 @@ function deleteUser(req, res){
         return res.status(200).send({message:'User deleted successfully.', userDeleted, success: true, date:Date()});
     });
 }
+/**
+ * Devuelve el usuario que está logeado mediante el token
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function getUser(req, res){
+    const {id} = req.userData;
+    try{
+        const user = await User.findById(id);
+        if(!user){
+            return res.status(404).send({message:'User not found.', success: false, date:Date()});
+        }
+        return res.status(200).send({message:'User found successfully.', user, success: true, date: Date()});
+    }catch(error){
+        return res.status(500).send({message:'Internal server error.', success: false, date:Date()});
+    }
+}
 module.exports = {
     register,
     validateUser,
     login,
-    deleteUser
+    deleteUser,
+    getUser
 }

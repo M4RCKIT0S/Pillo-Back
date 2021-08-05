@@ -11,7 +11,9 @@ router.post('/register', userControllers.register);
 router.patch('/validateEmail', userControllers.validateUser);
 //Login del usuario, se le entrega un token
 router.post('/login', userControllers.login);
-//Delete del usuario que esta logeado;
+//Delete del usuario que esta logeado
 router.delete('/deleteUser', checkAuth.checkLoggedIn, userControllers.deleteUser);
+//Get del usuario logeado
+router.get('/getUser', checkAuth.checkLoggedIn, userControllers.getUser);
 
 module.exports = router;
