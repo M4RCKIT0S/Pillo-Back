@@ -119,11 +119,37 @@ async function getAllUsers(req, res){
         return res.status(500).send({message:'Internal server error.', success: false, date:Date()});
     }
 }
+//Funcion para updatear al usuario
+async function updateUser(req, res){
+    if(req.body.userType){
+        return res.status(403).send({message:'Forbidden action.', success: false, date:Date()});
+    }
+    try{
+    const userId = req.userData.id;
+    if(req.body.password){
+        const salt = await bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+        const hashedPassword = await bcrypt.hashSync(req.body.password, salt);
+        req.body.password = hashedPassword;
+    }
+    const entries = Object.keys(req.body);
+    var query = {};
+    for(var i = 0; i<entries.length; i++){
+        query[entries[i]] = Object.values(req.body)[i];
+    }
+        const user = await User.findByIdAndUpdate(userId,{$set:query},{runValidators: true, new: true});
+        if(!user) return res.status(404).send({message:'User not found.', success: false, date:Date()});
+        return res.status(200).send({message:'User updated successfully.', user, success: true, date:Date()});
+    }catch(error){
+        console.log(error);
+        return res.status(500).send({message:'Internal server error.', error, success:false, date:Date()});
+    }
+}
 module.exports = {
     register,
     validateUser,
     login,
     deleteUser,
     getUser,
-    getAllUsers
+    getAllUsers,
+    updateUser
 }
