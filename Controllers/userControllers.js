@@ -73,7 +73,13 @@ function login(req, res){
                 bcrypt.compare(password, user.password, (error, result)=>{
                     if(error || !result) return res.status(400).send({message: 'Email or password invalid. Please try again.', success: false, error, date: Date()});
                     const token = jwt.sign({id: user._id, email, userType: user.userType}, process.env.token_login ,{expiresIn: '2h'});
-                    return res.status(200).send({message:'Logged in successfully.',token,expiresIn: '2h', success: true, date: Date()});
+                    //Devolvemos la hora a la que expira el token
+                    var date = new Date();
+                    //Necesitamos convertirlo a ms
+                    var dateMili = date.getTime();
+                    var newDate =  new Date();
+                    newDate.setTime(dateMili+ 4*60*60*1000);
+                    return res.status(200).send({message:'Logged in successfully.',token,expiresAt: newDate, success: true, date: Date()});
                 });
             } else{
                 return res.status(400).send({message: 'User is not verified. Please verify your email and try again.', success: false, date: Date()});
