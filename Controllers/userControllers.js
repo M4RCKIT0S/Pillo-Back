@@ -132,10 +132,18 @@ async function updateUser(req, res){
     }
     try{
     const userId = req.userData.id;
-    if(req.body.password){
-        const salt = await bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
-        const hashedPassword = await bcrypt.hashSync(req.body.password, salt);
-        req.body.password = hashedPassword;
+    //Todo, comprobar que introduce la password anterior
+    if(req.body.newPassword){
+        //Comparamos que ha introducido correctamente la contraseña anterior
+        const userForCompare = await User.findOne({_id:userId});
+        const isEqual = await bcrypt.compareSync(req.body.password, userForCompare.password);
+        if(isEqual){
+            const salt = await bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+            const hashedPassword = await bcrypt.hashSync(req.body.newPassword, salt);
+            req.body.password = hashedPassword;
+        }else{
+            return res.status(403).send({message:'Invalid password, try again.', success:false, date:Date()});
+        }
     }
     const entries = Object.keys(req.body);
     var query = {};
