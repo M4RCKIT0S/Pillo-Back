@@ -18,6 +18,7 @@ const emailServices = require('../Services/email');
 function register(req, res){
     const saltRounds = process.env.SALT_ROUNDS;
     const { password } = req.body;
+    console.log(req.body.address);
     bcrypt.genSalt(parseInt(saltRounds) ,(err, salt)=>{
         if(err){
             return res.status(500).send({message:'Internal server error.',error:'Error creating salt'+err, success: false, date: Date()});
@@ -31,9 +32,7 @@ function register(req, res){
                 email: req.body.email,
                 password: passwordHashed,
                 phoneNumber: req.body.phoneNumber, 
-                address: req.body.adress,
-                city: req.body.city,
-                postalCode: req.body.postalCode
+                address: req.body.address,
             });
             user.save((errorSavingUser, userSaved)=>{
                 if(errorSavingUser) return res.status(400).send({message:'Error saving user, please try again.',error:errorSavingUser ,success: false, date: Date()});
