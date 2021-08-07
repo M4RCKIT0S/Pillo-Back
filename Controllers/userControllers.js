@@ -31,7 +31,7 @@ function register(req, res){
                 email: req.body.email,
                 password: passwordHashed,
                 phoneNumber: req.body.phoneNumber, 
-                adress: req.body.adress,
+                address: req.body.adress,
                 city: req.body.city,
                 postalCode: req.body.postalCode
             });
