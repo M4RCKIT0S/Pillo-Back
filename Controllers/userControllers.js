@@ -161,6 +161,20 @@ async function updateUser(req, res){
         return res.status(500).send({message:'Internal server error.', error, success:false, date:Date()});
     }
 }
+/**
+ * Permite al administrador cambiar el tipo de usuario de otra cuenta o de si mismo
+ * @param {*} req 
+ * @param {*} res 
+ */
+function updateUserType(req, res){
+    const {email} = req.body;
+    const {userType} = req.body;
+    User.findOneAndUpdate({email},{$set: {userType}}, {new: true}, (err, userUpdated)=>{
+        if(err) return res.status(500).send({message:'Internal server error.', error, success:false, date:Date()});
+        if(!userUpdated) return res.status(404).send({message:'User not found.', success: false, date:Date()});
+        return res.status(200).send({message:'User updated successfully.', userUpdated, success: true, date: Date()});
+    })
+}
 module.exports = {
     register,
     validateUser,
@@ -168,5 +182,6 @@ module.exports = {
     deleteUser,
     getUser,
     getAllUsers,
-    updateUser
+    updateUser,
+    updateUserType
 }

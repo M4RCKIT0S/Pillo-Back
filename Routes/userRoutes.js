@@ -17,6 +17,8 @@ router.delete('/deleteUser', checkAuth.checkLoggedIn, userControllers.deleteUser
 router.get('/getUser', checkAuth.checkLoggedIn, userControllers.getUser);
 //Get de todos los usuarios del sistema, solo puede ser ejecutado por un administrador logeado
 router.get('/getAllUsers', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, userControllers.getAllUsers);
-//Updatear los datos de un usuario
+//Updatear los datos de un usuario excepto el tipo
 router.patch('/updateUser', checkAuth.checkLoggedIn, userControllers.updateUser);
+//Updatear el tipo de usuario
+router.patch('/updateUserType', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, userControllers.updateUserType);
 module.exports = router;
