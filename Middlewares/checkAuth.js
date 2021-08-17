@@ -11,23 +11,33 @@ module.exports = {
             req.userData = decoded;
             next();
         }catch(error){
-            return res.status(400).send({message:'Error validating token. Please log in.', error, success: false, date:Date()});
+            return res.status(400).send({message:'Error validating token. Please log in.', error: error.message, success: false, date:Date()});
         }
     },
     checkIfAdmin: function checkAdmin(req, res, next) {
-        const {userType} = req.userData;
-        if(userType==="admin"){
-            next();
-        }else{
-            return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+        try{
+            const {userType} = req.userData;
+            if(userType==="admin"){
+                next();
+            }else{
+                return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+            }
+        }catch(error){
+            return res.status(400).send({message:'Error validating token. Please log in.', error: error.message, success: false, date:Date()});
         }
     },
     checkIfShopAdmin: function checkShopAdmin(req,res, next){
-        const {userType} = req.userData;
-        if(userType==="shopAdmin"){
-            next();
-        }else{
-            return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+        try{
+            const {userType} = req.userData;
+            if(userType==="shopAdmin"){
+                next();
+            }else{
+                return res.status(403).send({message:'You are not authr¡orized to watch this content.', success: false, date:Date()});
+            }
+        }catch(error){
+            return res.status(400).send({message:'Error validating token. Please log in.', error, success: false, date:Date()});
+
         }
+
     }
 }

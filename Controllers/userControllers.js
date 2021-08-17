@@ -131,7 +131,6 @@ async function updateUser(req, res){
     }
     try{
     const userId = req.userData.id;
-    //Todo, comprobar que introduce la password anterior
     if(req.body.newPassword){
         //Comparamos que ha introducido correctamente la contraseña anterior
         const userForCompare = await User.findOne({_id:userId});
