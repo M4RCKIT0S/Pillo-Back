@@ -18,6 +18,10 @@ const emailServices = require('../Services/email');
 function register(req, res){
     const saltRounds = process.env.SALT_ROUNDS;
     const { password } = req.body;
+    var userType = "basicUserNotVerified";
+    if(req.userData){
+        if(req.userData.userType === "admin") userType = req.body.userType;
+    }
     console.log(req.body.address);
     bcrypt.genSalt(parseInt(saltRounds) ,(err, salt)=>{
         if(err){
@@ -31,6 +35,7 @@ function register(req, res){
                 surname: req.body.surname,
                 email: req.body.email,
                 password: passwordHashed,
+                userType,
                 phoneNumber: req.body.phoneNumber, 
                 address: req.body.address,
             });
@@ -98,6 +103,18 @@ function deleteUser(req, res){
     });
 }
 /**
+ * Permite a un administrador borrar una cuenta
+ * @param {*} req 
+ * @param {*} res 
+ */
+function deleteUserAdmin(req, res){
+    const {id} = req.body;
+    User.findOneAndDelete({_id: id},(err, userDeleted)=>{
+        if(err || !userDeleted) return res.status(400).send({message:'Couldn`t find user.', success: false, date: Date()});
+        return res.status(200).send({message:'User deleted successfully.', userDeleted, success: true, date:Date()});
+    });
+}
+/**
  * Devuelve el usuario que está logeado mediante el token
  * @param {*} req 
  * @param {*} res 
@@ -149,6 +166,7 @@ async function updateUser(req, res){
         query[entries[i]] = Object.values(req.body)[i];
     }
     if(req.body.email){
+        //Enviamos email de verificacion y cambiamos el tipo de usuario a sin verificar
         emailServices.sendVerificationEmail(req.body.email, userId);
         query = {...query, userType:'basicUserNotVerified'};
     }
@@ -165,10 +183,24 @@ async function updateUser(req, res){
  * @param {*} req 
  * @param {*} res 
  */
-function updateUserType(req, res){
-    const {email} = req.body;
-    const {userType} = req.body;
-    User.findOneAndUpdate({email},{$set: {userType}}, {new: true}, (err, userUpdated)=>{
+async function updateUserAdmin(req, res){
+    const {id} = req.body;
+    var query = {}
+    if(req.body.password){
+        try{
+            const salt = await bcrypt.genSaltSync(parseInt(process.env.SALT_ROUNDS));
+            const hashedPassword = await bcrypt.hashSync(req.body.newPassword, salt);
+            req.body.password = hashedPassword;
+        }catch(error){
+            return res.status(500).send({message:'Error hashing password.', success: false});
+        }
+    }
+    const keys = Object.keys(req.body);
+    const values = Object.values(req.body);
+    for(var i=0;i<keys.length;i++){
+        query[keys[i]] = values[i];
+    }
+    User.findOneAndUpdate({id},{$set:query}, {new: true}, (err, userUpdated)=>{
         if(err) return res.status(500).send({message:'Internal server error.', error, success:false, date:Date()});
         if(!userUpdated) return res.status(404).send({message:'User not found.', success: false, date:Date()});
         return res.status(200).send({message:'User updated successfully.', userUpdated, success: true, date: Date()});
@@ -179,8 +211,9 @@ module.exports = {
     validateUser,
     login,
     deleteUser,
+    deleteUserAdmin,
     getUser,
     getAllUsers,
     updateUser,
-    updateUserType
+    updateUserAdmin
 }
