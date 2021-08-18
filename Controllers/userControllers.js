@@ -200,7 +200,7 @@ async function updateUserAdmin(req, res){
     for(var i=0;i<keys.length;i++){
         query[keys[i]] = values[i];
     }
-    User.findOneAndUpdate({id},{$set:query}, {new: true}, (err, userUpdated)=>{
+    User.findOneAndUpdate({_id:id},{$set:query}, {new: true}, (err, userUpdated)=>{
         if(err) return res.status(500).send({message:'Internal server error.', error, success:false, date:Date()});
         if(!userUpdated) return res.status(404).send({message:'User not found.', success: false, date:Date()});
         return res.status(200).send({message:'User updated successfully.', userUpdated, success: true, date: Date()});
