@@ -55,11 +55,22 @@ async function deleteCategory(req,res){
         }
     });
 }
+//Updatear una categoría
+function updateCategory(req, res){
+    const {id, name} = req.body;
+    Category.findByIdAndUpdate(id,{$set:{name}},{new: true, runValidators: true}, (err, categoryUpdated)=>{
+        if(err) return res.status(500).send({message:'Error updating user.', error: err, success: false, date: Date()});
+        if(!categoryUpdated) return res.status(200).send({message:'No category found.', success: false, date: Date()});
+        return res.status(200).send({message:'Category updated successfully.', success: true, categoryUpdated, date: Date()});
+    })
+
+}
 
 
 module.exports = {
     createCategory,
     getCategories,
     getCategory,
-    deleteCategory
+    deleteCategory,
+    updateCategory
 }

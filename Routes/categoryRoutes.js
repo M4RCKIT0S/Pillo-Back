@@ -17,6 +17,8 @@ router.get('/getCategories', checkAuth.checkLoggedIn, categoryControllers.getCat
 router.get('/getCategory', checkAuth.checkLoggedIn, categoryControllers.getCategory);
 //Eliminar una categoría y sus subcategorías
 router.delete('/deleteCategory/:id', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.deleteCategory);
+//Updatear una categoría
+router.patch('/updateCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updateCategory);
 
 
 
@@ -26,5 +28,12 @@ router.delete('/deleteCategory/:id', checkAuth.checkLoggedIn, checkAuth.checkIfA
 router.post('/createSubcategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, subcategoryControllers.createSubcategory);
 //Obtener todas las subcategorías
 router.get('/getSubcategories', checkAuth.checkLoggedIn, subcategoryControllers.getAllSubcategories);
+//Obtener una categoría en específico por Id o nombre 
+router.get('/getSubcategory', checkAuth.checkLoggedIn, subcategoryControllers.getSubcategory);
+//Eliminar una subcategoría
+router.delete('/deleteSubcategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, subcategoryControllers.deleteSubcategory);
+//Updatear una subcategoría
+router.patch('/updateSubcategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, subcategoryControllers.updateSubcategory);
+
 
 module.exports = router;

@@ -60,7 +60,7 @@ const itemSchema = mongoose.Schema({
     active:{
         type: Boolean,
     },
-    categroies:{
+    categories:{
         type:[mongoose.SchemaTypes.ObjectId],
         ref: 'Category'
     }

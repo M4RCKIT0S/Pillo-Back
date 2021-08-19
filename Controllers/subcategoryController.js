@@ -39,9 +39,30 @@ async function getSubcategory(req, res){
         return res.status(500).send({message:'Error finding subcategory.', error: error.message, success: false, date: Date()});
     }
 }
-
+//Eliminar una subcategoría
+function deleteSubcategory(req, res){
+    const {id} = req.body;
+    Subcategory.findByIdAndDelete(id, async (err, subcategoryDeleted)=>{
+        if(err) return res.status(500).send({message:'Internal server error.', success: false, date: Date()});
+        if(!subcategoryDeleted) return res.status(404).send({message:'No subcategory found.', success: false, date: Date()});
+        const category = await Category.findByIdAndUpdate(subcategoryDeleted.upperCategory,{$pull:{subcategories: id}},{new: true, runValidators: true});
+        return res.status(200).send({message:'Subcategory deleted successfully.', success: true, subcategoryDeleted,category,date: Date()});
+    }) 
+}
+async function updateSubcategory (){
+    try {
+        const {id, name} = req.body;
+        const subcategory = await Subcategory.findByIdAndUpdate(id,{$set:{name}}, {new: true, runValidators: true});
+        if(!subcategory) return res.status(404).send({message:'Subcategory not found.', success: false, date: Date()});
+        return res.status(200).send({message:''})
+    } catch (error) {
+        return res.status(500).send({message: 'Error updating subcategory.', error, success: false, date: Date()});
+    }
+}
 module.exports = {
     createSubcategory,
     getAllSubcategories,
-    getSubcategory
+    getSubcategory,
+    deleteSubcategory,
+    updateSubcategory
 }

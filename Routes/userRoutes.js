@@ -7,7 +7,7 @@ const router = express.Router();
 
 //Registro de un usuario normal
 router.post('/register', userControllers.register);
-//Permite a un administrador crear una cuenta;
+//Permite a un administrador crear una cuenta
 router.post('/createAccountAdmin', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, userControllers.register);
 //Validación del email de un usuario
 router.patch('/validateEmail', userControllers.validateUser);
