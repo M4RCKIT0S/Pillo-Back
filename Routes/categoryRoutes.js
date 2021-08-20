@@ -16,7 +16,7 @@ router.get('/getCategories', checkAuth.checkLoggedIn, categoryControllers.getCat
 //Obtener una categoría en específico
 router.get('/getCategory', checkAuth.checkLoggedIn, categoryControllers.getCategory);
 //Eliminar una categoría y sus subcategorías
-router.delete('/deleteCategory/:id', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.deleteCategory);
+router.delete('/deleteCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.deleteCategory);
 //Updatear una categoría
 router.patch('/updateCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updateCategory);
 

@@ -49,12 +49,19 @@ function deleteSubcategory(req, res){
         return res.status(200).send({message:'Subcategory deleted successfully.', success: true, subcategoryDeleted,category,date: Date()});
     }) 
 }
-async function updateSubcategory (){
+async function updateSubcategory (req,res){
     try {
-        const {id, name} = req.body;
-        const subcategory = await Subcategory.findByIdAndUpdate(id,{$set:{name}}, {new: true, runValidators: true});
+        const {id, name,categoryId,oldCategoryId} = req.body;
+        const subcategory = await Subcategory.findByIdAndUpdate(id,{$set:{name, upperCategory:categoryId}}, {new: true, runValidators: true});
         if(!subcategory) return res.status(404).send({message:'Subcategory not found.', success: false, date: Date()});
-        return res.status(200).send({message:''})
+        if(categoryId != oldCategoryId){
+            const oldCategory = await Category.findByIdAndUpdate(oldCategoryId,{$pull:{subcategories: id}},{new: true, runValidators: true});
+            const newCategorie = await Category.findByIdAndUpdate(categoryId,{$push:{subcategories: id}},{new: true, runValidators: true});
+            return res.status(200).send({message:'', success: true, subcategory,newCategorie,oldCategory,date: Date()})
+
+        }
+        return res.status(200).send({message:'', success: true, subcategory, date: Date()})
+
     } catch (error) {
         return res.status(500).send({message: 'Error updating subcategory.', error, success: false, date: Date()});
     }
