@@ -57,7 +57,6 @@ async function deleteCategory(req,res){
 }
 //Updatear una categoría
 function updateCategory(req, res){
-    console.log(req.body)
     const {id, name, description} = req.body;
     Category.findByIdAndUpdate(id,{$set:{name,description}},{new: true, runValidators: true}, (err, categoryUpdated)=>{
         if(err) return res.status(500).send({message:'Error updating user.', error: err, success: false, date: Date()});
