@@ -21,7 +21,7 @@ async function createSubcategory(req, res){
 //Obtener todas las subcategorías
 async function getAllSubcategories(req, res){
     try{
-        const subcategories = await Subcategory.find({});
+        const subcategories = await Subcategory.find({}).populate('upperCategory');
         if(!subcategories) return res.status(404).send({message:'No subcategories found.', success: true, date: Date()});
         return res.status(200).send({message:'Subcategories found successfully.', subcategories, success: true, date: Date()});
     }catch(error){
