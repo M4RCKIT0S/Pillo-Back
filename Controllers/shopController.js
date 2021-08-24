@@ -1,4 +1,5 @@
 const Shop = require('../Models/shop');
+const Product = require('../Models/item').product;
 
 async function createShop(req, res){
     const { name } = req.body;
@@ -48,9 +49,10 @@ async function updateShop(req, res){
 
 async function deleteShop(req, res){
     const {id} = req.body;
-    Shop.findOneAndDelete(id,(err, shopDeleted)=>{
+    Shop.findOneAndDelete(id, async(err, shopDeleted)=>{
         if(err) return res.status(500).send({message:'Internal server error.', success:false, date:Date()});
         if(!shopDeleted) return res.status(404).send({message:'Shop not found.', success: false, date:Date()});
+        const productsUpdated = await Product.updateMany({shop: id},{$unset:{shop:1}});
         return res.status(200).send({message:'Shop deleted successfully.', shopDeleted, success: true, date:Date()});
     })
 }

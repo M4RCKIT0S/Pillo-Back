@@ -1,5 +1,6 @@
 const Subcategory = require('../Models/item').subcategory;
 const Category = require('../Models/item').category;
+const Product = require('../Models/item').product;
 
 async function createSubcategory(req, res){
     try{
@@ -46,6 +47,7 @@ function deleteSubcategory(req, res){
         if(err) return res.status(500).send({message:'Internal server error.', success: false, date: Date()});
         if(!subcategoryDeleted) return res.status(404).send({message:'No subcategory found.', success: false, date: Date()});
         const category = await Category.findByIdAndUpdate(subcategoryDeleted.upperCategory,{$pull:{subcategories: id}},{new: true, runValidators: true});
+        const productsUpdated = await Product.updateMany({subcategory: id},{$unset:{subcategory:1}});
         return res.status(200).send({message:'Subcategory deleted successfully.', success: true, subcategoryDeleted,category,date: Date()});
     }) 
 }

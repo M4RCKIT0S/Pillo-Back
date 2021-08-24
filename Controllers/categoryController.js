@@ -1,6 +1,6 @@
 const Category = require('../Models/item').category;
 const Subcategory = require('../Models/item').subcategory;
-
+const Product = require('../Models/item').product;
 
 function createCategory(req, res){
 
@@ -39,12 +39,14 @@ async function getCategory(req, res){
 async function deleteCategory(req,res){
     const {id} = req.body;
     var subcategoriesDeleted = []
-    Category.findByIdAndDelete(id,(err, categoryDeleted)=>{
+    Category.findByIdAndDelete(id,async (err, categoryDeleted)=>{
         if(err || !categoryDeleted) return res.status(404).send({message:'No category found.', success: false, date: Date()});
         try {
+            const productsUpdated1 = await Product.updateMany({category: id},{$unset:{category: 1}});
             if(categoryDeleted.subcategories){
                 categoryDeleted.subcategories.forEach(async element => {
-                    const subcategoryDeleted = await Subcategory.findOneAndDelete({_id: element});
+                    var subcategoryDeleted = await Subcategory.findOneAndDelete({_id: element});
+                    var productsUpdated2 = await Product.updateMany({subcategory: element},{$unset:{subcategory: 1}});
                     subcategoriesDeleted.push(subcategoryDeleted);
                 });
                 return res.status(200).send({message:'Category and subcategories successfully deleted.', categoryDeleted, success: true, date: Date()});
