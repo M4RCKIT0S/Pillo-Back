@@ -13,6 +13,11 @@ const categorySchema = mongoose.Schema({
         type: [mongoose.SchemaTypes.ObjectId],
         ref: 'subcategory',
         default: []
+    },
+    products:{
+        type: [mongoose.SchemaTypes.ObjectId],
+        ref: 'product',
+        default: []
     }
 },{
     timeStamps: true,
@@ -28,13 +33,18 @@ const subcategorySchema = mongoose.Schema({
         type: mongoose.SchemaTypes.ObjectId,
         ref: 'Category',
         required: true,
+    },
+    products:{
+        type: [mongoose.SchemaTypes.ObjectId],
+        ref: 'product',
+        default: []
     }
 },{
     timeStamps: true,
     retainKeyOrder: true
 });
 
-const itemSchema = mongoose.Schema({
+const productSchema = mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -47,7 +57,7 @@ const itemSchema = mongoose.Schema({
         type: Number,
         required: true
     },
-    quantity:{
+    stock:{
         type: Number,
         required: true,
     },
@@ -56,21 +66,48 @@ const itemSchema = mongoose.Schema({
         required: true,
         ref: 'User'
     },
+    maxOrder:{
+        type: Number
+    },
     //Indica si el objeto se puede comprar o no, se actualiza automaticamente si la cantidad es menor que 0
     active:{
         type: Boolean,
+        default: true
     },
-    categories:{
-        type:[mongoose.SchemaTypes.ObjectId],
+    category:{
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'Category'
-    }
+    },
+    subcategory:{
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'subcategory'
+    },
+    shop:{
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'shop'
+    },
+    image: {
+        type: String,
+    },
+    labels: {
+        type: [String],
+    },
+    extrafields:[{
+        name: String,
+        description: String,
+        extraPrice: Number,
+        values: {
+            type: [mongoose.SchemaTypes.Mixed]
+        }
+        }
+    ]
 },{
     timeStamps: true,
     retainKeyOrder: true
 });
 
 module.exports = {
-    item: mongoose.model('item', itemSchema),
+    product: mongoose.model('product', productSchema),
     category: mongoose.model('Category', categorySchema),
     subcategory: mongoose.model('subcategory', subcategorySchema)
 };

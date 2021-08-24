@@ -56,11 +56,11 @@ async function updateSubcategory (req,res){
         if(!subcategory) return res.status(404).send({message:'Subcategory not found.', success: false, date: Date()});
         if(categoryId != oldCategoryId){
             const oldCategory = await Category.findByIdAndUpdate(oldCategoryId,{$pull:{subcategories: id}},{new: true, runValidators: true});
-            const newCategorie = await Category.findByIdAndUpdate(categoryId,{$push:{subcategories: id}},{new: true, runValidators: true});
-            return res.status(200).send({message:'', success: true, subcategory,newCategorie,oldCategory,date: Date()})
+            const newCategory = await Category.findByIdAndUpdate(categoryId,{$push:{subcategories: id}},{new: true, runValidators: true});
+            return res.status(200).send({message:'Subcategory updated successfully.', success: true, subcategory,newCategory,oldCategory,date: Date()})
 
         }
-        return res.status(200).send({message:'', success: true, subcategory, date: Date()})
+        return res.status(200).send({message:'Subcategory updated successfully.', success: true, subcategory, date: Date()})
 
     } catch (error) {
         return res.status(500).send({message: 'Error updating subcategory.', error, success: false, date: Date()});
