@@ -18,4 +18,4 @@ const shoppingChartSchema = mongoose.Schema({
     timeStamps: true
 });
 
-module.exports = mongoose.model('shoppingChar', shoppingChartSchema);
+module.exports = mongoose.model('shoppingChart', shoppingChartSchema);
