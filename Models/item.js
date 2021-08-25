@@ -20,7 +20,7 @@ const categorySchema = mongoose.Schema({
         default: []
     }
 },{
-    timeStamps: true,
+    timestamps: true,
     retainKeyOrder: true
 });
 const subcategorySchema = mongoose.Schema({
@@ -40,7 +40,7 @@ const subcategorySchema = mongoose.Schema({
         default: []
     }
 },{
-    timeStamps: true,
+    timestamps: true,
     retainKeyOrder: true
 });
 
@@ -102,7 +102,7 @@ const productSchema = mongoose.Schema({
         }
     ]
 },{
-    timeStamps: true,
+    timestamps: true,
     retainKeyOrder: true
 });
 

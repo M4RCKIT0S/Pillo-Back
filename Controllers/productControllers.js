@@ -72,21 +72,23 @@ async function deleteProduct(req, res){
         return res.status(500).send({message:'Error deleting product.', success: false, error, date: Date()});
     }
 }
-//Editiar un producto, Todo(testear)
+//Editar un producto, Todo(testear)
 async function updateProduct(req, res){
     try{
         const {productId, oldCategory,newCategory, oldSubcategory,newSubcategory, oldShop, newShop, addExtrafield, extraFieldId, removeExtraFieldId, addLabel, removeLabel, addExtraFieldValue, removeExtraFieldValue} = req.body;
         var querySet = {};
         var arrayFilters = [];
         var keys = Object.keys(req.body);
-        for(var i=0;i<keys;i++){
+        const values = Object.values(req.body);
+        console.log(keys)
+        for(var i=0;i<keys.length;i++){
             if(keys[i] == "name" ||
                 keys[i] ==  "description" ||
                 keys[i] == "price"||
                 keys[i] == "stock" ||
                 keys[i] == "maxOrder" ||
                 keys[i] == "active"){
-                    querySet[keys[i]] = Object.values(req.body)[i];
+                    querySet[keys[i]] = values[i];
                 }
             if(keys[i] == "extraFieldName" || 
                 keys[i] == "extraFieldDescription" ||
@@ -102,13 +104,14 @@ async function updateProduct(req, res){
                     default: value = '';
                     break;
                 }
-                var queryExtraField = 'extrafields.$[extrafield].' + value;
-                querySet = {...querySet, queryExtraField};
+                var queryExtraField = 'extrafields.$[extraField].' + value;
+                querySet[queryExtraField] = values[i]; 
                 arrayFilters = [{'extraField._id': extraFieldId}];
             }
         } 
-        const addLabelQuery = addLabel ? {labels: label} : {};
-        const removeLabelQuery = removeLabel ? {labels: label} : {};
+        console.log(querySet)
+        const addLabelQuery = addLabel ? {labels: addLabel} : {};
+        const removeLabelQuery = removeLabel ? {labels: removeLabel} : {};
         const addExtraFieldQuery = addExtrafield ? {extrafields: addExtrafield} : {};
         //Para el objeto de extraField entero
         const removeExtraFieldQuery = removeExtraFieldId ? {extrafields:{_id: removeExtraFieldId}} : {};
@@ -118,6 +121,7 @@ async function updateProduct(req, res){
                                                                         arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ): {};
         var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
         var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
+        console.log(removeQuery)
         if(oldCategory != newCategory) {
             querySet = {...querySet, category: newCategory};
             const categoryProductRemoved = await Category.findOne({_id: oldCategory}, {$pull:{products: productId}}, {new: true});
@@ -135,9 +139,9 @@ async function updateProduct(req, res){
         }
         const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet, $push: addQuery, $pull:removeQuery},{arrayFilters, new: true});
         if(!updatedProduct) return res.status(404).send({message:'Product not found.', success: false, date: Date()});
-        return res.status(200).send({message:'Product updated successfully.', success: true, updateProduct, date: Date()});
+        return res.status(200).send({message:'Product updated successfully.', success: true, updatedProduct, date: Date()});
     }catch(error){
-        return res.status(500).send({message:'Error updating product.', success: false, error,date: Date()});
+        return res.status(500).send({message:'Error updating product.', success: false, error: error.message,date: Date()});
     }
 }
 module.exports = {

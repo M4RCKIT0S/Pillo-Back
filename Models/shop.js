@@ -12,7 +12,7 @@ const shopSchema = mongoose.Schema({
         default: []
     }
 },{
-    timeStamps: true,
+    timestamps: true,
     retainKeyOrder: true
 });
 

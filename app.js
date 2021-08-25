@@ -7,6 +7,7 @@ const postalCodeRoutes = require('./Routes/postalCodeRoutes');
 const categoryRoutes = require('./Routes/categoryRoutes');
 const shopRoutes = require('./Routes/shopRoutes');
 const productRoutes = require('./Routes/productRoutes');
+const shoppingChartRoutes = require('./Routes/shoppingChartRoutes');
 
 /**
  * Initial setup of app, mainly found in express documentation
@@ -20,5 +21,6 @@ app.use('/postalCode', postalCodeRoutes);
 app.use('/category', categoryRoutes);
 app.use('/shop', shopRoutes);
 app.use('/product', productRoutes);
+app.use('/shoppingChart', shoppingChartRoutes);
 
 module.exports = app;

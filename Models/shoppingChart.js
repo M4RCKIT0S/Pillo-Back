@@ -12,10 +12,15 @@ const shoppingChartSchema = mongoose.Schema({
             ref: 'product'
         },
         quantity: Number,
+        _id: false,
         default: []
     }],
+    totalPrice: {
+        type: Number,
+        default: 0
+    }
 },{
-    timeStamps: true
+    timestamps: true
 });
 
 module.exports = mongoose.model('shoppingChart', shoppingChartSchema);
