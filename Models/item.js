@@ -14,6 +14,10 @@ const categorySchema = mongoose.Schema({
         ref: 'subcategory',
         default: []
     },
+    image:{
+        type: String,
+        required: true
+    },
     products:{
         type: [mongoose.SchemaTypes.ObjectId],
         ref: 'product',
@@ -92,7 +96,7 @@ const productSchema = mongoose.Schema({
     labels: {
         type: [String],
     },
-    extrafields:[{
+    extraFields:[{
         name: String,
         description: String,
         extraPrice: Number,

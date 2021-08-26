@@ -12,9 +12,17 @@ const shoppingChartSchema = mongoose.Schema({
             ref: 'product'
         },
         quantity: Number,
+        extraFields: [mongoose.SchemaTypes.Mixed],
         _id: false,
-        default: []
     }],
+    subtotal: {
+        type: Number,
+        default: 0
+    },
+    extraPrice: {
+        type: Number,
+        default: 0
+    },
     totalPrice: {
         type: Number,
         default: 0

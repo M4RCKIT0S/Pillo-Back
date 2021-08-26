@@ -104,7 +104,7 @@ async function updateProduct(req, res){
                     default: value = '';
                     break;
                 }
-                var queryExtraField = 'extrafields.$[extraField].' + value;
+                var queryExtraField = 'extraFields.$[extraField].' + value;
                 querySet[queryExtraField] = values[i]; 
                 arrayFilters = [{'extraField._id': extraFieldId}];
             }
@@ -112,12 +112,12 @@ async function updateProduct(req, res){
         console.log(querySet)
         const addLabelQuery = addLabel ? {labels: addLabel} : {};
         const removeLabelQuery = removeLabel ? {labels: removeLabel} : {};
-        const addExtraFieldQuery = addExtrafield ? {extrafields: addExtrafield} : {};
+        const addExtraFieldQuery = addExtrafield ? {extraFields: addExtrafield} : {};
         //Para el objeto de extraField entero
-        const removeExtraFieldQuery = removeExtraFieldId ? {extrafields:{_id: removeExtraFieldId}} : {};
+        const removeExtraFieldQuery = removeExtraFieldId ? {extraFields:{_id: removeExtraFieldId}} : {};
         //Para valores internos del extraField
-        const addValuesToExtrafield = addExtraFieldValue ? ({'extrafields.$[extrafield].values': addExtraFieldValue}, arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ) : {};
-        const removeValueFromExtraField = removeExtraFieldValue ? ({'extrafields.$[extrafield].values': removeExtraFieldValue},
+        const addValuesToExtrafield = addExtraFieldValue ? ({'extraFields.$[extrafield].values': addExtraFieldValue}, arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ) : {};
+        const removeValueFromExtraField = removeExtraFieldValue ? ({'extraFields.$[extrafield].values': removeExtraFieldValue},
                                                                         arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ): {};
         var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
         var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
