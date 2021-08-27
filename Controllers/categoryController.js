@@ -3,10 +3,9 @@ const Subcategory = require('../Models/item').subcategory;
 const Product = require('../Models/item').product;
 
 //For uploading photos
-const uploadPhoto = require('../Services/photo');
+const {uploadSingleImage} = require('../Services/image');
 
 function createCategory(req, res){
-
         const {name, description} = req.body;
         const category = new Category({
             name, 
@@ -70,16 +69,15 @@ function updateCategory(req, res){
     })
 }
 //Updatear la foto de una categoría
-async function updatePhoto(req, res){
-    const {categoryId, folder} = req.body;
+async function updateImage(req, res){
+    const {categoryId, path} = req.body;
     try{
-        const photoUrl = await uploadPhoto(req, res, folder);        
-        const category = await Category.findByIdAndUpdate(categoryId,{$set:{image:photoUrl}},{new: true});
-        console.log(category)
+        const imageUrl = await uploadSingleImage(req, res, path);        
+        const category = await Category.findByIdAndUpdate(categoryId,{$set:{image:imageUrl}},{new: true});
         if(!category) return res.status(404).send({message:'No category found.', success: false, date: Date()});
         return res.status(200).send({message:'Category photo updated successfully.', category, success: true, date: Date()});
     }catch(error){
-        return res.status(500).send({message:'Error updating photo.', error, success: false})
+        return res.status(500).send({message:'Error updating photo.', error:error.message, success: false})
     }
 }
 
@@ -90,5 +88,5 @@ module.exports = {
     getCategory,
     deleteCategory,
     updateCategory,
-    updatePhoto
+    updateImage
 }

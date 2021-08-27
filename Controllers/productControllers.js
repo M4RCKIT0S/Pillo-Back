@@ -3,6 +3,9 @@ const Category = require('../Models/item').category;
 const Subcategory = require('../Models/item').subcategory;
 const Shop = require('../Models/shop');
 
+const {uploadMultipleImages} = require('../Services/image')
+
+
 async function createProduct(req, res){
     try{
     const {name, description, price, stock, maxOrder, category, subcategory, shop, labels, extrafields} = req.body;
@@ -144,10 +147,27 @@ async function updateProduct(req, res){
         return res.status(500).send({message:'Error updating product.', success: false, error: error.message,date: Date()});
     }
 }
+
+
+async function updateImages(req, res){
+    const {productId, path} = req.body;
+    try{
+        const images = await uploadMultipleImages(req, res, path);
+        console.log(images)    
+        const product = await Product.findByIdAndUpdate(productId,{$set:{images:images}},{new: true});
+        if(!product) return res.status(404).send({message:'No category found.', success: false, date: Date()});
+        return res.status(200).send({message:'Category photo updated successfully.', product, success: true, date: Date()});
+    }catch(error){
+        return res.status(500).send({message:'Error updating photo.', error, success: false})
+    }
+}
+
+
 module.exports = {
     createProduct,
     getProducts,
     getProduct,
     deleteProduct,
-    updateProduct
+    updateProduct,
+    updateImages,
 }

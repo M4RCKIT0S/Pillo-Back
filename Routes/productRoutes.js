@@ -1,6 +1,7 @@
 //Controllers
 const productControllers = require('../Controllers/productControllers');
-
+const multer  = require('multer')
+const upload = multer()
 //Middlewares
 const checkAuth = require('../Middlewares/checkAuth');
 
@@ -17,5 +18,7 @@ router.get('/getProduct', checkAuth.checkLoggedIn, productControllers.getProduct
 router.delete('/deleteProduct', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.deleteProduct);
 //Editar un producto, por ahora los extra fields no se pueden editar en detalle, solo añadir nuevos o borrar los ya existentes
 router.patch('/updateProduct', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.updateProduct);
+
+router.patch('/updateImages', upload.array('files'), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.updateImages);
 
 module.exports = router;

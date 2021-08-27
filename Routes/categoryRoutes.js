@@ -21,7 +21,7 @@ router.delete('/deleteCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin
 //Updatear una categoría
 router.patch('/updateCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updateCategory);
 //Asignar una foto a una categoria
-router.patch('/editPhoto', upload.any(), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updatePhoto);
+router.patch('/updateImage', upload.single('file'), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updateImage);
 
 
 

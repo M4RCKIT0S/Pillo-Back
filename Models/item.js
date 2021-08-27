@@ -16,7 +16,6 @@ const categorySchema = mongoose.Schema({
     },
     image:{
         type: String,
-        required: true
     },
     products:{
         type: [mongoose.SchemaTypes.ObjectId],
@@ -90,8 +89,8 @@ const productSchema = mongoose.Schema({
         type: mongoose.SchemaTypes.ObjectId,
         ref: 'shop'
     },
-    image: {
-        type: String,
+    images: {
+        type: [String]
     },
     labels: {
         type: [String],
