@@ -1,7 +1,8 @@
 //Controllers
 const categoryControllers = require('../Controllers/categoryController');
 const subcategoryControllers = require('../Controllers/subcategoryController');
-
+const multer  = require('multer')
+const upload = multer()
 //Middlewares
 const checkAuth = require('../Middlewares/checkAuth');
 
@@ -12,15 +13,15 @@ const router = require('./userRoutes');
 //Para crear categoría
 router.post('/createCategory', checkAuth.checkLoggedIn,checkAuth.checkIfAdmin, categoryControllers.createCategory);
 //Para obtener las categorías
-router.get('/getCategories', checkAuth.checkLoggedIn, categoryControllers.getCategories);
+router.get('/getCategories', categoryControllers.getCategories);
 //Obtener una categoría en específico
-router.get('/getCategory', checkAuth.checkLoggedIn, categoryControllers.getCategory);
+router.get('/getCategory', categoryControllers.getCategory);
 //Eliminar una categoría y sus subcategorías
 router.delete('/deleteCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.deleteCategory);
 //Updatear una categoría
 router.patch('/updateCategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updateCategory);
 //Asignar una foto a una categoria
-router.patch('/editPhoto', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updatePhoto);
+router.patch('/editPhoto', upload.any(), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, categoryControllers.updatePhoto);
 
 
 

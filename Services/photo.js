@@ -5,16 +5,18 @@ const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("pillo_app");
 
-const uploadPhoto = async(req, res,folder)=>{
+const uploadPhoto = async(req, res, folder)=>{
     return new Promise(async(resolve, reject)=>{
         try {
-            await processFile(req, res);
-            if (!req.file) {
+          console.log(req.files)
+
+            if (!req.files) {
               reject('Please upload a file.');
             }
-        
+            
+
             // Create a new blob in the bucket and upload the file data.
-            const blob = bucket.file(req.file.originalname);
+            const blob = bucket.file(`${folder}/${req.files[0].originalname}`);
             const blobStream = blob.createWriteStream({
               resumable: false,
             });
@@ -31,11 +33,11 @@ const uploadPhoto = async(req, res,folder)=>{
         
               try {
                 // Make the file public
-                await bucket.file(req.file.originalname).makePublic();
+                await bucket.file(`${folder}/${req.files[0].originalname}`).makePublic();
               } catch {
                 return res.status(500).send({
                   message:
-                    `Uploaded the file successfully: ${req.file.originalname}, but public access is denied!`,
+                    `Uploaded the file successfully: ${req.files[0].originalname}, but public access is denied!`,
                   url: publicUrl,
                 });
               }
@@ -43,7 +45,7 @@ const uploadPhoto = async(req, res,folder)=>{
               resolve(publicUrl);
             });
         
-            blobStream.end(req.file.buffer);
+            blobStream.end(req.files[0].buffer);
           } catch (err) {
             if (err.code == "LIMIT_FILE_SIZE") {
                reject("File size cannot be larger than 2MB!")

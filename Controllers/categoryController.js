@@ -71,13 +71,9 @@ function updateCategory(req, res){
 }
 //Updatear la foto de una categoría
 async function updatePhoto(req, res){
-    const {categoryId, folder} = req.query;
-
-    console.log(folder, categoryId)
+    const {categoryId, folder} = req.body;
     try{
-        const photoUrl = await uploadPhoto(req, res, folder);
-        
-        console.log(photoUrl)
+        const photoUrl = await uploadPhoto(req, res, folder);        
         const category = await Category.findByIdAndUpdate(categoryId,{$set:{image:photoUrl}},{new: true});
         console.log(category)
         if(!category) return res.status(404).send({message:'No category found.', success: false, date: Date()});
