@@ -21,6 +21,10 @@ const categorySchema = mongoose.Schema({
         type: [mongoose.SchemaTypes.ObjectId],
         ref: 'product',
         default: []
+    },
+    visible:{
+        type: Boolean,
+        default: false,
     }
 },{
     timestamps: true,
@@ -91,6 +95,10 @@ const productSchema = mongoose.Schema({
     },
     images: {
         type: [String]
+    },
+    visible:{
+        type: Boolean,
+        default: false,
     },
     labels: {
         type: [String],
