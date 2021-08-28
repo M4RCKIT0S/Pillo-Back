@@ -39,7 +39,7 @@ async function updateShop(req, res){
     const addProduct = addProductId ? {$push:{products: addProductId}} : {}
     const deleteProduct = deleteProductId ? {$pull:{products: deleteProductId}} : {}
 
-    Shop.findOneAndUpdate(id,{...changeName,...addProduct,...deleteProduct}, (err, shopUpdated)=>{
+    Shop.findByIdAndUpdate(id,{...changeName,...addProduct,...deleteProduct}, (err, shopUpdated)=>{
         if(err) return res.status(500).send({message:'Internal server error.', success:false, date:Date()});
         if(!shopUpdated) return res.status(404).send({message:'Shop not found.', success: false, date:Date()});
         return res.status(200).send({message:'Shop updated successfully.', shopUpdated, success: true, date:Date()});
@@ -49,7 +49,7 @@ async function updateShop(req, res){
 
 async function deleteShop(req, res){
     const {id} = req.body;
-    Shop.findOneAndDelete(id, async(err, shopDeleted)=>{
+    Shop.findByIdAndDelete(id, async(err, shopDeleted)=>{
         if(err) return res.status(500).send({message:'Internal server error.', success:false, date:Date()});
         if(!shopDeleted) return res.status(404).send({message:'Shop not found.', success: false, date:Date()});
         const productsUpdated = await Product.updateMany({shop: id},{$unset:{shop:1}});
