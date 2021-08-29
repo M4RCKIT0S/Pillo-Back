@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const nanoId = require('nanoid');
 
 const categorySchema = mongoose.Schema({
     name:{
