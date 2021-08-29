@@ -55,17 +55,19 @@ const uploadSingleImage = async(req, res, path)=>{
     })
 }
 
-const uploadMultipleImages = async(req, res, path)=>{
-  return new Promise(async(resolve, reject)=>{
+const uploadMultipleImages = async (files, path)=>{
+      
       try {
-
-          if (!req.files) {
-            reject('Please upload a file.');
+          
+          console.log(files)
+          if (!files) {
+            return false
           }
           
           let publicUrls = []
 
-          req.files.forEach(file =>{
+          files.forEach(file =>{
+            
             // Create a new blob in the bucket and upload the file data.
             const blob = bucket.file(`${path}/${file.originalname}`);
             const blobStream = blob.createWriteStream({
@@ -101,10 +103,10 @@ const uploadMultipleImages = async(req, res, path)=>{
         
             });
         
-            blobStream.end(file.buffer);
+            blobStream.end(file?.buffer);
           })
 
-          resolve(publicUrls)
+          return publicUrls
 
         } catch (err) {
           if (err.code == "LIMIT_FILE_SIZE") {
@@ -112,8 +114,9 @@ const uploadMultipleImages = async(req, res, path)=>{
             }
             reject(`Could not upload the file. ${err}`);
         }
-  })
 }
+
+
 const deleteImage= async(path)=>{
   return newPromise(async(resolve, reject)=>{
     await bucket.file(path).delete().then(()=> resolve()).catch(()=> reject('Error deleting photo.'));

@@ -98,7 +98,6 @@ async function updateProduct(req, res){
                     querySet[keys[i]] = values[i];
                 }
         } 
-        console.log(querySet)
         //const addLabelQuery = addLabel ? {labels: addLabel} : {};
         //const removeLabelQuery = removeLabel ? {labels: removeLabel} : {};
         //const addExtraFieldQuery = addExtrafield ? {extraFields: addExtrafield} : {};
@@ -136,7 +135,6 @@ async function updateProduct(req, res){
                 var shopProductAdded = await Shop.findOneAndUpdate({_id: newShop}, {$push:{products: productId}}, {new: true});
             } 
         }
-        console.log(querySet)
         const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet,  ...removeImageQuery},{new: true});
         if(!updatedProduct) return res.status(404).send({message:'Product not found.', success: false, date: Date()});
         return res.status(200).send({message:'Product updated successfully.', success: true, updatedProduct, date: Date()});
@@ -148,10 +146,9 @@ async function updateProduct(req, res){
 
 
 async function updateImages(req, res){
-    const {productId, path} = req.body;
+    const { productId, path } = req.body;
     try{
-        const images = await uploadMultipleImages(req, res, path);
-        console.log(images)    
+        const images = await uploadMultipleImages(req.files, path);
         const product = await Product.findByIdAndUpdate(productId,{$addToSet:{images:images}},{new: true});
         if(!product) return res.status(404).send({message:'No product found.', success: false, date: Date()});
         return res.status(200).send({message:'Product photos updated successfully.', product, success: true, date: Date()});
