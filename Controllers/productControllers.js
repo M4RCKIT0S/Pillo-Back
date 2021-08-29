@@ -87,7 +87,6 @@ async function updateProduct(req, res){
         var arrayFilters = [];
         var keys = Object.keys(req.body);
         const values = Object.values(req.body);
-        console.log(keys)
         for(var i=0;i<keys.length;i++){
             if(keys[i] !== "productId" &&
                 keys[i] !=="oldCategory" &&
@@ -117,24 +116,32 @@ async function updateProduct(req, res){
             await deleteImage(removeImage);
         }
         if(oldCategory != newCategory) {
-            querySet = {...querySet, category: newCategory};
-            const categoryProductRemoved = await Category.findOne({_id: oldCategory}, {$pull:{products: productId}}, {new: true});
-            const categoryProductAdded = await Category.findOne({_id: newCategory}, {$push:{products: productId}}, {new: true});
+            const categoryProductRemoved = await Category.findOneAndUpdate({_id: oldCategory}, {$pull:{products: productId}}, {new: true});
+            if(newCategory) {
+                querySet = {...querySet, category: newCategory};
+                var categoryProductAdded = await Category.findOneAndUpdate({_id: newCategory}, {$push:{products: productId}}, {new: true});
+            }
         }
         if(oldSubcategory != newSubcategory) {
-            querySet = {...querySet, subcategory: newSubcategory};
-            const subcategoryProductRemoved = await Subcategory.findOne({_id: oldSubcategory}, {$pull:{products: productId}}, {new: true});
-            const subcategoryProductAdded = await Subcategory.findOne({_id: newSubcategory}, {$push:{products: productId}}, {new: true});
+            const subcategoryProductRemoved = await Subcategory.findOneAndUpdate({_id: oldSubcategory}, {$pull:{products: productId}}, {new: true});
+            if(newSubcategory){
+                var subcategoryProductAdded = await Subcategory.findOneAndUpdate({_id: newSubcategory}, {$push:{products: productId}}, {new: true});
+                querySet = {...querySet, subcategory: newSubcategory};
+            } 
         }
         if(oldShop != newShop) {
-            querySet = {...querySet, shop: newShop};
-            const shopProductRemoved = await Shop.findOne({_id: oldShop}, {$pull:{products: productId}}, {new: true});
-            const shopProductAdded = await Shop.findOne({_id: newShop}, {$push:{products: productId}}, {new: true});
+            const shopProductRemoved = await Shop.findOneAndUpdate({_id: oldShop}, {$pull:{products: productId}}, {new: true});
+            if(newShop){
+                querySet = {...querySet, shop: newShop};
+                var shopProductAdded = await Shop.findOneAndUpdate({_id: newShop}, {$push:{products: productId}}, {new: true});
+            } 
         }
+        console.log(querySet)
         const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet,  ...removeImageQuery},{new: true});
         if(!updatedProduct) return res.status(404).send({message:'Product not found.', success: false, date: Date()});
         return res.status(200).send({message:'Product updated successfully.', success: true, updatedProduct, date: Date()});
     }catch(error){
+        console.log(error)
         return res.status(500).send({message:'Error updating product.', success: false, error: error.message,date: Date()});
     }
 }
