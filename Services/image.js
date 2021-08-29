@@ -59,7 +59,6 @@ const uploadMultipleImages = async (files, path)=>{
       
       try {
           
-          console.log(files)
           if (!files) {
             return false
           }

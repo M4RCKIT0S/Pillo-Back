@@ -9,7 +9,7 @@ const {deleteImage} = require('../Services/image')
 async function createProduct(req, res){
     try{
     const {name, description, price, stock, maxOrder, category, subcategory, shop, labels, extraFields, variants} = req.body;
-    const imagesUrls = await uploadMultipleImages(req.files, req.body.path);
+    console.log('files:' + req.files)
     const uploadedBy = req.userData.id;
     const product = new Product({
         name,
@@ -24,14 +24,16 @@ async function createProduct(req, res){
         labels,
         extraFields,
         variants,
-        images: imagesUrls
     });
+        let categoryFound;
+        if(category) {
+            categoryFound = await Category.findOne({_id: category});
+        }
 
-        if(category) const categoryFound = await Category.findOne({_id: category});
-        if((!categoryFound.subcategories || categoryFound.subcategories.length == 0) && subcategory){
+        if(categoryFound && (!categoryFound.subcategories || categoryFound.subcategories.length == 0) && subcategory){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
-        if(!categoryFound.subcategories.includes(subcategory)){
+        if(categoryFound && !categoryFound.subcategories.includes(subcategory)){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
         const productSaved = await product.save();
@@ -39,9 +41,13 @@ async function createProduct(req, res){
             categoryFound.products.push(productSaved._id);
             const categorySaved = await categoryFound.save();
         } 
-        if(subcategory) const subcategoryUpdated = await Subcategory.findByIdAndUpdate(subcategory, {$push:{products:productSaved._id}},{new: true, runValidators: true});
-        if(shop) const shopUpdated = await Shop.findByIdAndUpdate(shop,{$push:{products:productSaved._id}},{new: true, runValidators: true});
-        return res.status(200).send({message: 'Product saved succesfully.',success: true,product: productSaved, categoryUpdated: categorySaved, subcategoryUpdated, shopUpdated})
+        if(subcategory){
+            const subcategoryUpdated = await Subcategory.findByIdAndUpdate(subcategory, {$push:{products:productSaved._id}},{new: true, runValidators: true});
+        }
+        if(shop) {
+            const shopUpdated = await Shop.findByIdAndUpdate(shop,{$push:{products:productSaved._id}},{new: true, runValidators: true});
+        }
+        return res.status(200).send({message: 'Product saved succesfully.',success: true,product: productSaved})
     }catch(error){
         return res.status(500).send({message:'Error saving product.', error: error.message});
     }
