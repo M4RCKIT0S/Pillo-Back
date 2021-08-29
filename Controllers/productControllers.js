@@ -115,29 +115,34 @@ async function updateProduct(req, res){
         if(removeImage){
             await deleteImage(removeImage);
         }
+        var unsetQuery = {}
         if(oldCategory != newCategory) {
             const categoryProductRemoved = await Category.findOneAndUpdate({_id: oldCategory}, {$pull:{products: productId}}, {new: true});
-            querySet = {...querySet, category: newCategory};
+            if(newCategory==="") unsetQuery = {...unsetQuery, category: 1};
             if(newCategory) {
+                querySet = {...querySet, category: newCategory};
+
                 var categoryProductAdded = await Category.findOneAndUpdate({_id: newCategory}, {$push:{products: productId}}, {new: true});
             }
         }
         if(oldSubcategory != newSubcategory) {
             const subcategoryProductRemoved = await Subcategory.findOneAndUpdate({_id: oldSubcategory}, {$pull:{products: productId}}, {new: true});
-            querySet = {...querySet, subcategory: newSubcategory};
+           if(newSubcategory==="") unsetQuery = {...unsetQuery, subcategory: 1};
             if(newSubcategory){
+                querySet = {...querySet, subcategory: newSubcategory};
                 var subcategoryProductAdded = await Subcategory.findOneAndUpdate({_id: newSubcategory}, {$push:{products: productId}}, {new: true});
             } 
         }
         if(oldShop != newShop) {
-            querySet = {...querySet, shop: newShop};
             const shopProductRemoved = await Shop.findOneAndUpdate({_id: oldShop}, {$pull:{products: productId}}, {new: true});
+            if(newShop==="") unsetQuery = {...unsetQuery, shop:1} ;
             if(newShop){
+                querySet = {...querySet, shop: newShop};
                 var shopProductAdded = await Shop.findOneAndUpdate({_id: newShop}, {$push:{products: productId}}, {new: true});
             } 
         }
         console.log(querySet)
-        const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet,  ...removeImageQuery},{new: true});
+        const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet,  ...removeImageQuery,$unset: unsetQuery},{new: true});
         if(!updatedProduct) return res.status(404).send({message:'Product not found.', success: false, date: Date()});
         return res.status(200).send({message:'Product updated successfully.', success: true, updatedProduct, date: Date()});
     }catch(error){
