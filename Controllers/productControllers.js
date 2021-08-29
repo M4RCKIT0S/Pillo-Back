@@ -119,10 +119,15 @@ async function updateProduct(req, res){
         //var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
         //var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
         //console.log(removeQuery)
-        var removeImageQuery = removeImage? {$pull:{images:removeImage}}: {};
-        if(removeImage){
-            console.log(parseImageLinkName(removeImage, req.body.name))
-            await deleteImage(`products/${req.body.name}/${parseImageLinkName(removeImage, req.body.name)}`);
+        var removeImageQuery = removeImage && req.body.name? {$pull:{images:{$in: removeImage}}}: {};
+        if(removeImage&&req.body.name){
+            removeImage.forEach(async element => {
+                try{
+                    await deleteImage(`products/${req.body.name}/${parseImageLinkName(element, req.body.name)}`);
+                }catch(err){
+                    console.log(err);
+                }
+            });
         }
         var unsetQuery = {}
         if(oldCategory != newCategory) {
