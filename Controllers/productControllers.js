@@ -117,22 +117,22 @@ async function updateProduct(req, res){
         }
         if(oldCategory != newCategory) {
             const categoryProductRemoved = await Category.findOneAndUpdate({_id: oldCategory}, {$pull:{products: productId}}, {new: true});
+            querySet = {...querySet, category: newCategory};
             if(newCategory) {
-                querySet = {...querySet, category: newCategory};
                 var categoryProductAdded = await Category.findOneAndUpdate({_id: newCategory}, {$push:{products: productId}}, {new: true});
             }
         }
         if(oldSubcategory != newSubcategory) {
             const subcategoryProductRemoved = await Subcategory.findOneAndUpdate({_id: oldSubcategory}, {$pull:{products: productId}}, {new: true});
+            querySet = {...querySet, subcategory: newSubcategory};
             if(newSubcategory){
                 var subcategoryProductAdded = await Subcategory.findOneAndUpdate({_id: newSubcategory}, {$push:{products: productId}}, {new: true});
-                querySet = {...querySet, subcategory: newSubcategory};
             } 
         }
         if(oldShop != newShop) {
+            querySet = {...querySet, shop: newShop};
             const shopProductRemoved = await Shop.findOneAndUpdate({_id: oldShop}, {$pull:{products: productId}}, {new: true});
             if(newShop){
-                querySet = {...querySet, shop: newShop};
                 var shopProductAdded = await Shop.findOneAndUpdate({_id: newShop}, {$push:{products: productId}}, {new: true});
             } 
         }
