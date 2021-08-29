@@ -9,11 +9,11 @@ const checkAuth = require('../Middlewares/checkAuth');
 const router = require('./userRoutes');
 
 //Crear un producto
-router.post('/createProduct', upload.any('files'), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.createProduct);
+router.post('/createProduct',   checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.createProduct);
 //Obtener los productos
-router.get('/getProducts', checkAuth.checkLoggedIn, productControllers.getProducts);
+router.get('/getProducts',  productControllers.getProducts);
 //Obtener un producto en concreto
-router.get('/getProduct', checkAuth.checkLoggedIn, productControllers.getProduct);
+router.get('/getProduct',   productControllers.getProduct);
 //Eliminar un producto
 router.delete('/deleteProduct', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.deleteProduct);
 //Editar un producto, por ahora los extra fields no se pueden editar en detalle, solo añadir nuevos o borrar los ya existentes

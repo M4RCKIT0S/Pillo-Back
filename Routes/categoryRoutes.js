@@ -29,9 +29,9 @@ router.patch('/updateImage', upload.single('file'), checkAuth.checkLoggedIn, che
 //Para crear subcategoria
 router.post('/createSubcategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, subcategoryControllers.createSubcategory);
 //Obtener todas las subcategorías
-router.get('/getSubcategories', checkAuth.checkLoggedIn, subcategoryControllers.getAllSubcategories);
+router.get('/getSubcategories', subcategoryControllers.getAllSubcategories);
 //Obtener una categoría en específico por Id o nombre 
-router.get('/getSubcategory', checkAuth.checkLoggedIn, subcategoryControllers.getSubcategory);
+router.get('/getSubcategory',  subcategoryControllers.getSubcategory);
 //Eliminar una subcategoría
 router.delete('/deleteSubcategory', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, subcategoryControllers.deleteSubcategory);
 //Updatear una subcategoría

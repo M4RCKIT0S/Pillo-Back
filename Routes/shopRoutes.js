@@ -12,9 +12,9 @@ const router = require('./userRoutes');
 //Para crear tienda
 router.post('/createShop', checkAuth.checkLoggedIn,checkAuth.checkIfAdmin, shopController.createShop);
 //Para obtener tiendas
-router.get('/getShops', checkAuth.checkLoggedIn, shopController.getAllShops);
+router.get('/getShops',   shopController.getAllShops);
 //Obtener una tienda
-router.get('/getShop', checkAuth.checkLoggedIn, shopController.getShop);
+router.get('/getShop',  shopController.getShop);
 //Eliminar una tienda
 router.delete('/deleteShop', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, shopController.deleteShop);
 //Updatear una tienda
