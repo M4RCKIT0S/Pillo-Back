@@ -33,7 +33,7 @@ async function createProduct(req, res){
         if(categoryFound && (!categoryFound.subcategories || categoryFound.subcategories.length == 0) && subcategory){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
-        if(categoryFound && !categoryFound.subcategories.includes(subcategory)){
+        if(categoryFound && subcategory && !categoryFound.subcategories.includes(subcategory)){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
         const productSaved = await product.save();
