@@ -104,7 +104,7 @@ const productSchema = mongoose.Schema({
         ref: 'Category'
     },
     subcategory:{
-        type: mongoose.SchemaTypes.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId ,
         ref: 'subcategory'
     },
     shop:{
