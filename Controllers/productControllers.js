@@ -4,7 +4,7 @@ const Subcategory = require('../Models/item').subcategory;
 const Shop = require('../Models/shop');
 
 const {uploadMultipleImages} = require('../Services/image')
-
+const {deleteImage} = require('../Services/image')
 
 async function createProduct(req, res){
     try{
@@ -82,53 +82,40 @@ async function deleteProduct(req, res){
 //Editar un producto, Todo(testear)
 async function updateProduct(req, res){
     try{
-        const {_id, oldCategory,newCategory, oldSubcategory,newSubcategory, oldShop, newShop, addExtrafield, extraFieldId, removeExtraFieldId, addLabel, removeLabel, addExtraFieldValue, removeExtraFieldValue} = req.body;
+        const {productId, oldCategory,newCategory, oldSubcategory,newSubcategory, oldShop, newShop, removeImage, path} = req.body;
         var querySet = {};
         var arrayFilters = [];
         var keys = Object.keys(req.body);
         const values = Object.values(req.body);
         console.log(keys)
         for(var i=0;i<keys.length;i++){
-            if(keys[i] == "name" ||
-                keys[i] ==  "description" ||
-                keys[i] == "price"||
-                keys[i] == "stock" ||
-                keys[i] == "maxOrder" ||
-                keys[i] == "active"){
+            if(keys[i] !== "_id" &&
+                keys[i] !=="oldCategory" &&
+                keys[i] !=="newCategory" &&
+                keys[i] !== "oldSubcategory" &&
+                keys[i] !== "newSubcategory" &&
+                keys[i] !== "oldShop" && 
+                keys[i] !== "newShop"){
                     querySet[keys[i]] = values[i];
                 }
-            if(keys[i] == "extraFieldName" || 
-                keys[i] == "extraFieldDescription" ||
-                keys[i] == "extraFieldExtraPrice"
-            ){
-                var value = keys[i];
-                switch(value){
-                    case "extraFieldName": value = 'name';
-                    break;
-                    case "extraFieldDescription": value = 'description';
-                    break;
-                    case "extraFieldExtraPrice": value = 'extraPrice';
-                    default: value = '';
-                    break;
-                }
-                var queryExtraField = 'extraFields.$[extraField].' + value;
-                querySet[queryExtraField] = values[i]; 
-                arrayFilters = [{'extraField._id': extraFieldId}];
-            }
         } 
         console.log(querySet)
-        const addLabelQuery = addLabel ? {labels: addLabel} : {};
-        const removeLabelQuery = removeLabel ? {labels: removeLabel} : {};
-        const addExtraFieldQuery = addExtrafield ? {extraFields: addExtrafield} : {};
+        //const addLabelQuery = addLabel ? {labels: addLabel} : {};
+        //const removeLabelQuery = removeLabel ? {labels: removeLabel} : {};
+        //const addExtraFieldQuery = addExtrafield ? {extraFields: addExtrafield} : {};
         //Para el objeto de extraField entero
-        const removeExtraFieldQuery = removeExtraFieldId ? {extraFields:{_id: removeExtraFieldId}} : {};
+        //const removeExtraFieldQuery = removeExtraFieldId ? {extraFields:{_id: removeExtraFieldId}} : {};
         //Para valores internos del extraField
-        const addValuesToExtrafield = addExtraFieldValue ? ({'extraFields.$[extrafield].values': addExtraFieldValue}, arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ) : {};
-        const removeValueFromExtraField = removeExtraFieldValue ? ({'extraFields.$[extrafield].values': removeExtraFieldValue},
-                                                                        arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ): {};
-        var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
-        var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
-        console.log(removeQuery)
+        //const addValuesToExtrafield = addExtraFieldValue ? ({'extraFields.$[extrafield].values': addExtraFieldValue}, arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ) : {};
+        //const removeValueFromExtraField = removeExtraFieldValue ? ({'extraFields.$[extrafield].values': removeExtraFieldValue},
+        //                                                                arrayFilters.length==0? arrayFilters = [{'extraField._id': extraFieldId}] : null ): {};
+        //var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
+        //var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
+        //console.log(removeQuery)
+        var removeImageQuery = removeImage? {$pull:{image:removeImage}}: {};
+        if(removeImage){
+            await deleteImage(removeImage);
+        }
         if(oldCategory != newCategory) {
             querySet = {...querySet, category: newCategory};
             const categoryProductRemoved = await Category.findOne({_id: oldCategory}, {$pull:{products: _id}}, {new: true});
@@ -144,7 +131,7 @@ async function updateProduct(req, res){
             const shopProductRemoved = await Shop.findOne({_id: oldShop}, {$pull:{products: _id}}, {new: true});
             const shopProductAdded = await Shop.findOne({_id: newShop}, {$push:{products: _id}}, {new: true});
         }
-        const updatedProduct = await Product.findOneAndUpdate({_id: _id},{$set:querySet, $push: addQuery, $pull:removeQuery},{arrayFilters, new: true});
+        const updatedProduct = await Product.findOneAndUpdate({_id: productId},{$set:querySet,  ...removeImageQuery},{new: true});
         if(!updatedProduct) return res.status(404).send({message:'Product not found.', success: false, date: Date()});
         return res.status(200).send({message:'Product updated successfully.', success: true, updatedProduct, date: Date()});
     }catch(error){
@@ -153,17 +140,14 @@ async function updateProduct(req, res){
 }
 
 
-
-
-
 async function updateImages(req, res){
     const {productId, path} = req.body;
     try{
         const images = await uploadMultipleImages(req, res, path);
         console.log(images)    
-        const product = await Product.findByIdAndUpdate(productId,{$set:{images:images}},{new: true});
-        if(!product) return res.status(404).send({message:'No category found.', success: false, date: Date()});
-        return res.status(200).send({message:'Category photo updated successfully.', product, success: true, date: Date()});
+        const product = await Product.findByIdAndUpdate(productId,{$addToSet:{images:images}},{new: true});
+        if(!product) return res.status(404).send({message:'No product found.', success: false, date: Date()});
+        return res.status(200).send({message:'Product photos updated successfully.', product, success: true, date: Date()});
     }catch(error){
         return res.status(500).send({message:'Error updating photo.', error, success: false})
     }

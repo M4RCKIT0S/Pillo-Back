@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const nanoId = require('nanoid');
 
 const categorySchema = mongoose.Schema({
     name:{
@@ -65,8 +66,8 @@ const variantSchema = mongoose.Schema({
     cool: String,
     measure: String,
     type: String,
-    stock: String,
-    price: String,
+    stock: Number,
+    price: Number,
 });
 
 const productSchema = mongoose.Schema({

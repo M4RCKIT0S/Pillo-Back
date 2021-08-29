@@ -1,6 +1,7 @@
 const processFile = require("../Middlewares/multer");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
+const { resolve } = require("path");
 // Instantiate a storage client with credentials
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("pillo_app");
@@ -113,8 +114,13 @@ const uploadMultipleImages = async(req, res, path)=>{
         }
   })
 }
-
+const deleteImage= async(path)=>{
+  return newPromise(async(resolve, reject)=>{
+    await bucket.file(path).delete().then(()=> resolve()).catch(()=> reject('Error deleting photo.'));
+  })
+}
 module.exports = {
   uploadSingleImage,
   uploadMultipleImages,
+  deleteImage
 };
