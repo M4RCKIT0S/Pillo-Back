@@ -9,7 +9,7 @@ const checkAuth = require('../Middlewares/checkAuth');
 const router = require('./userRoutes');
 
 //Crear un producto
-router.post('/createProduct', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.createProduct);
+router.post('/createProduct', upload.any('files'), checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.createProduct);
 //Obtener los productos
 router.get('/getProducts', checkAuth.checkLoggedIn, productControllers.getProducts);
 //Obtener un producto en concreto
