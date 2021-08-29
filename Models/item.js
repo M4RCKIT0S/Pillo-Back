@@ -51,6 +51,24 @@ const subcategorySchema = mongoose.Schema({
     retainKeyOrder: true
 });
 
+const extraFieldsSchema = mongoose.Schema({
+    name: String,
+    values: [{
+        value: String
+    }]
+})
+
+const variantSchema = mongoose.Schema({
+    size: String,
+    color: String,
+    dimension: String,
+    cool: String,
+    measure: String,
+    type: String,
+    stock: String,
+    price: String,
+});
+
 const productSchema = mongoose.Schema({
     name: {
         type: String,
@@ -103,19 +121,14 @@ const productSchema = mongoose.Schema({
     labels: {
         type: [String],
     },
-    extraFields:[{
-        name: String,
-        description: String,
-        extraPrice: Number,
-        values: {
-            type: [mongoose.SchemaTypes.Mixed]
-        }
-        }
-    ]
+    extraFields:[extraFieldsSchema],
+    variants: [variantSchema]
 },{
     timestamps: true,
     retainKeyOrder: true
 });
+
+
 
 module.exports = {
     product: mongoose.model('product', productSchema),
