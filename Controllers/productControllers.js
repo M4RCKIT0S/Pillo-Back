@@ -8,7 +8,7 @@ const {deleteImage} = require('../Services/image')
 
 async function createProduct(req, res){
     try{
-    const {name, description, price, stock, maxOrder, category, subcategory, shop, labels, extraFields, variants, images} = req.body;
+    const {name, description, price, stock, maxOrder, category, subcategory, shop, labels, extraFields, variants} = req.body;
     const imagesUrls = await uploadMultipleImages(req.files, req.body.path);
     const uploadedBy = req.userData.id;
     const product = new Product({
@@ -27,7 +27,7 @@ async function createProduct(req, res){
         images: imagesUrls
     });
 
-        const categoryFound = await Category.findOne({_id: category});
+        if(category) const categoryFound = await Category.findOne({_id: category});
         if((!categoryFound.subcategories || categoryFound.subcategories.length == 0) && subcategory){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
@@ -37,8 +37,8 @@ async function createProduct(req, res){
         const productSaved = await product.save();
         categoryFound.products.push(productSaved._id);
         const categorySaved = await categoryFound.save();
-        const subcategoryUpdated = await Subcategory.findByIdAndUpdate(subcategory, {$push:{products:productSaved._id}},{new: true, runValidators: true});
-        const shopUpdated = await Shop.findByIdAndUpdate(shop,{$push:{products:productSaved._id}},{new: true, runValidators: true});
+        if(subcategory) const subcategoryUpdated = await Subcategory.findByIdAndUpdate(subcategory, {$push:{products:productSaved._id}},{new: true, runValidators: true});
+        if(shop) const shopUpdated = await Shop.findByIdAndUpdate(shop,{$push:{products:productSaved._id}},{new: true, runValidators: true});
         return res.status(200).send({message: 'Product saved succesfully.',success: true,product: productSaved, categoryUpdated: categorySaved, subcategoryUpdated, shopUpdated})
     }catch(error){
         return res.status(500).send({message:'Error saving product.', error: error.message});
