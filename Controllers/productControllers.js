@@ -78,6 +78,15 @@ async function deleteProduct(req, res){
 }
 
 
+const parseImageLinkName = (link,productName) =>{
+    let parsedImage = null
+    let index = link.indexOf(productName)
+    if(index !== -1){
+      parsedImage = link.substring(index+productName.length+1)
+    }
+
+    return parsedImage
+}
 
 //Editar un producto, Todo(testear)
 async function updateProduct(req, res){
@@ -110,9 +119,10 @@ async function updateProduct(req, res){
         //var addQuery = {...addLabelQuery, ...addExtraFieldQuery, ...addValuesToExtrafield};
         //var removeQuery = { ...removeLabelQuery, ...removeExtraFieldQuery, ...removeValueFromExtraField};
         //console.log(removeQuery)
-        var removeImageQuery = removeImage? {$pull:{image:removeImage}}: {};
+        var removeImageQuery = removeImage? {$pull:{images:removeImage}}: {};
         if(removeImage){
-            await deleteImage(removeImage);
+            console.log(parseImageLinkName(removeImage, req.body.name))
+            await deleteImage(`products/${req.body.name}/${parseImageLinkName(removeImage, req.body.name)}`);
         }
         var unsetQuery = {}
         if(oldCategory != newCategory) {

@@ -118,7 +118,7 @@ const uploadMultipleImages = async (files, path)=>{
 
 
 const deleteImage= async(path)=>{
-  return newPromise(async(resolve, reject)=>{
+  return new Promise(async(resolve, reject)=>{
     await bucket.file(path).delete().then(()=> resolve()).catch(()=> reject('Error deleting photo.'));
   })
 }
