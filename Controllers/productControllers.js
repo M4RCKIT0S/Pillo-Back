@@ -35,8 +35,10 @@ async function createProduct(req, res){
             return res.status(400).send({message:'Bad request, please try again.', success: false, status: 400, date: Date()});
         }
         const productSaved = await product.save();
-        categoryFound.products.push(productSaved._id);
-        const categorySaved = await categoryFound.save();
+        if(category){
+            categoryFound.products.push(productSaved._id);
+            const categorySaved = await categoryFound.save();
+        } 
         if(subcategory) const subcategoryUpdated = await Subcategory.findByIdAndUpdate(subcategory, {$push:{products:productSaved._id}},{new: true, runValidators: true});
         if(shop) const shopUpdated = await Shop.findByIdAndUpdate(shop,{$push:{products:productSaved._id}},{new: true, runValidators: true});
         return res.status(200).send({message: 'Product saved succesfully.',success: true,product: productSaved, categoryUpdated: categorySaved, subcategoryUpdated, shopUpdated})
