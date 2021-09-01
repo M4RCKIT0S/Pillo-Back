@@ -188,6 +188,28 @@ async function updateImages(req, res){
         return res.status(500).send({message:'Error updating photo.', error, success: false})
     }
 }
+//Obtener los productos según la categoría
+async function getProductsByCategory(req,res){
+    try{
+        const {categoryId} = req.body;
+        const products = await Category.findById(categoryId).populate('products');
+        if(!products) return res.status(404).send({message:'No products found.', success: false, date: Date()});
+        return res.status(200).send({message:'Producst found successfully by category.', success: true, products, date: Date()});
+    }catch(error){
+        return res.status(500).send({message:'Error getting products.', error, success: false, date: Date()});
+    }
+}
+//Obtener los productos según la categoría
+async function getProductsBySubCategory(req,res){
+    try{
+        const {subcategoryId} = req.body;
+        const products = await Subcategory.findById(categoryId).populate('products');
+        if(!products) return res.status(404).send({message:'No products found.', success: false, date: Date()});
+        return res.status(200).send({message:'Producst found successfully by subcategory.', success: true, products, date: Date()});
+    }catch(error){
+        return res.status(500).send({message:'Error getting products.', error, success: false, date: Date()});
+    }
+}
 
 
 module.exports = {
@@ -197,4 +219,6 @@ module.exports = {
     deleteProduct,
     updateProduct,
     updateImages,
+    getProductsByCategory,
+    getProductsBySubCategory
 }

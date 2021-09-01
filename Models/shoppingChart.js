@@ -7,12 +7,12 @@ const shoppingChartSchema = mongoose.Schema({
         ref: 'user'
     },
     products:[{
-        product:{
+        productId:{
             type: mongoose.SchemaTypes.ObjectId,
             ref: 'product'
         },
         quantity: Number,
-        extraFields: [mongoose.SchemaTypes.Mixed],
+        variant: mongoose.SchemaTypes.Mixed,
         _id: false,
     }],
     subtotal: {

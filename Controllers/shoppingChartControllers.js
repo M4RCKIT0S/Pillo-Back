@@ -4,8 +4,17 @@ const Product = require('../Models/item').product;
 
 async function createShoppingChart(req, res){
         const {products} = req.body;
+        /*{
+            products:[{
+                productId:Id del producto,
+                quantity: cantidad,
+                variant: Variante en caso de haber{
+                    size, color, cualquier atributo necesario              
+                }
+            }]
+        }*/
         const {id} = req.userData;
-        var productsFoundAndQuantities = [];
+        var productsFoundVariantsAndQuantities = [];
         var subtotal = 0;
         var extras = 0;
         const findIfAlreadyHasOne = await ShoppingChart.findOne({user: id});
@@ -14,42 +23,50 @@ async function createShoppingChart(req, res){
             var promiseForEach = new Promise((resolve, reject) =>{
                 products.forEach(async (element, index, array) => {
                     console.log(element)
-                    var product = await Product.findOne({_id: element.product});
-                    productsFoundAndQuantities.push({product, quantity: element.quantity});
-                    console.log(productsFoundAndQuantities)
-                    if(element.extraFields){
-                        var ids = element.extraFields.map(e => e._id);
-                        console.log(ids)
-                        var res = product.extraFields.filter(item => ids.indexOf(item._id.toString()) > -1);
-                                                        console.log(res);
-                        if(res.length ===0) reject('Error creating shopping chart');          
-                        product.extraFields.forEach(object => {
-                            console.log(object._id)
-                            var indexOfids = ids.indexOf(object._id.toString());
-                            console.log(indexOfids)
-                            if(indexOfids>-1 && object.values.includes(element.extraFields[indexOfids].value)){
-                                if(element.extraFields[indexOfids].value === true){
-                                        extras += element.quantity * object.extraPrice;
-                                        console.log(extras)
-                                }
+                    var product = await Product.findOne({_id: element.productId});
+                    console.log(product);
+                    if(element.variant){
+                        if(product.variants){
+                            //para recorrer el array de variantes del producto
+                            var found = false; var i =0;
+
+                            while(i<product.variants.length && !found){
+                                console.log(element.variant.color, product.variants[i].color)
+                                if(element.variant.color=== product.variants[i].color &&
+                                    element.variant.size === product.variants[i].size &&
+                                    element.variant.cool === product.variants[i].cool &&
+                                    element.variant.type === product.variants[i].type &&
+                                    element.variant.dimension === product.variants[i].dimension &&
+                                    element.variant.measure === product.variants[i].measure){
+                                        found = true;
+                                    }
+                                    if(!found) i++;
                             }
-                        })                            
-                    }
+                            if(found){
+                                    if(product.variants[i].stock - element.quantity >=0 && product.maxOrder - element.quantity >=0){
+                                        
+                                        subtotal+= element.quantity*product.variants[i].price;
+                                    }else{
+                                        reject('No such quantity availeable.');
+                                    }
+                                }
+                            }else{
+                                reject('The variant for this object was not found');
+                            }
+                        }else{
+                            if(product.stock - element.quantity >=0 && product.maxOrder - element.quantity >=0){
+                                subtotal+= element.quantity*product.price;
+                            }else{
+                                reject('No such quantity availeable.');
+                        }
+                        }
+                        if(index - products.length === -1){
+                            resolve();
+                        }
+                })                           
                     
-                    if(index === array.length-1) resolve();
                 });
-            })
-            promiseForEach.then(()=>{
-                var promise2 = new Promise((resolve, reject)=>{
-                    productsFoundAndQuantities.forEach((element, index, array) =>{
-                       if(element.product.stock - element.quantity<0 || element.product.maxOrder - element.quantity < 0){
-                           reject('Please fill a valid quantity.');
-                       }
-                       subtotal += element.quantity*element.product.price;
-                       if(index === array.length - 1) resolve();
-                   })
-                });
-                promise2.then( async()=>{
+                promiseForEach.then( async()=>{
                     var totalPrice = subtotal + extras;
                     const shoppingChartModel = new ShoppingChart({
                         user: id,
@@ -62,15 +79,13 @@ async function createShoppingChart(req, res){
                     return res.status(200).send({message:'Shopping chart created successfully.', success: true, shoppingChart,date: Date()});
                 }).catch((error)=>{
                     return res.status(500).send({message:'Error creating shopping chart', success: false, error, date: Date()});
-                })
-            }).catch( error => {
-                return res.status(500).send({message:'Error creating shopping chart', success: false, error, date: Date()});
-            });
+                });
         }else{
             try{
                 const shoppingChartModel = new ShoppingChart({
                     user: id,
                     products,
+                    subtotal
                 });
                 const shoppingChart = await shoppingChartModel.save();
                 return res.status(200).send({message:'Shopping chart created successfully.', success: true, shoppingChart,date: Date()});
@@ -105,7 +120,7 @@ async function getShoppingChart(req, res){
 async function removeProducts(req,res){
     const { removeAllProducts} = req.body;
     const {id} = req.userData;
-    const removeAllProductsQuery = removeAllProducts? {$unset:{products:1},$set:{subtotal: 0, extraPrice:0, totalPrice:0}} : {}
+    const removeAllProductsQuery =  {$unset:{products:1},$set:{subtotal: 0, extraPrice:0, totalPrice:0}};
     try{
         const shoppingChart = await ShoppingChart.findOneAndUpdate({user: id}, {...removeAllProductsQuery},{new: true, runValidators: true});
         if(!shoppingChart) return res.status(404).send({message:'No shopping chart found.', success: false, date: Date()});
@@ -116,50 +131,187 @@ async function removeProducts(req,res){
 }
 async function edit(req, res){
     const {id} = req.userData;
-    const {products} = req.body;
+    const {addProducts, removeProducts} = req.body;
     try{
-        const shoppingChart = await ShoppingChart.findOne({user: id});
-        const productsIdFromChart = await shoppingChart.products.map(e=> e.product);
-        //Vienen del req.body
-        if(products){
-            products.forEach( object => {
-                var promiseProductFound = new Promise( async (resolve, reject)=>{
-                    var productFound = await Product.findOne({_id:object.product});
-                    if(!productFound) reject('No product found');
-                    resolve(productFound);
-                })
-                promiseProductFound.then(()=>{
-                    if(productsIdFromChart.includes(object.product.toString())){
-                        var index = productsIdFromChart.indexOf(object.product.toString());
-                        
-                        if(object.add){
-                            shoppingChart.products[index].quantity += object.quantity;
-                            shoppingChart.subtotal +=  object.quantity*shoppingChart.products[index].price;
-                            if(object.extraFields.value === true){
-    
+        var subtotal = 0;
+        var shoppingChart = await ShoppingChart.findOne({user: id});
+        if(!shoppingChart) return res.status(404).send({message:'This user doesn´t have a shopping chart.', success: false, date: Date()});
+        var addPromise = new Promise(async (resolve, reject)=>{
+            if(addProducts){
+                addProducts.forEach(async(obj, index)=>{
+                    var productId = obj.productId;
+                    let product = await Product.findOne({_id: productId});
+                    let queryPush = {};
+                    let querySet = {};
+                    if(product.variants && obj.variant){
+                      //para recorrer el array de variantes del producto
+                      var found = false;
+                      var i = 0;
+                      while (i < shoppingChart.products.length && !found) {
+                          //Se comprueba si está en el producto esa variante y luego se comprueba si está o no en el carrito
+                          //dividir querys de añadir uno nuevo o uno ya existente
+                          console.log(i)
+                        if(
+                          obj.variant.color === shoppingChart.products[i].variant.color &&
+                          obj.variant.size === shoppingChart.products[i].variant.size &&
+                          obj.variant.cool === shoppingChart.products[i].variant.cool &&
+                          obj.variant.type === shoppingChart.products[i].variant.type &&
+                          obj.variant.dimension === shoppingChart.products[i].variant.dimension &&
+                          obj.variant.measure === shoppingChart.products[i].variant.measure) {
+                          found = true;
+                        }
+                        if (!found) i++;
+                      }
+                      
+                      console.log(found)
+                      if (found) {
+                        if (product.variants[i].stock - (obj.quantity + shoppingChart.products[i].quantity) >= 0 && product.maxOrder - (obj.quantity + shoppingChart.products[i].quantity )>= 0) {
+                          subtotal = shoppingChart.subtotal + obj.quantity * product.variants[i].price;
+                          let pos2 = `products.${i}.quantity`;
+                            console.log(pos2);
+                            querySet[pos2] = shoppingChart.products[i].quantity + obj.quantity;
+                            console.log(querySet);
+                        } else {
+                          reject("No such quantity availeable.");
+                        }
+                      }else{
+                          var x =0;
+                          var encontrado = false;
+                          while(x< product.variants.length && !encontrado){
+                            if(
+                                obj.variant.color === product.variants[x].color &&
+                                obj.variant.size === product.variants[x].size &&
+                                obj.variant.cool === product.variants[x].cool &&
+                                obj.variant.type === product.variants[x].type &&
+                                obj.variant.dimension === product.variants[x].dimension &&
+                                obj.variant.measure === product.variants[x].measure) {
+                                encontrado = true;
+                              }
+                              if(!encontrado )x++
+                          }
+                          if(encontrado){
+                              if(product.variants[i].stock - obj.quantity >= 0 && product.maxOrder - obj.quantity >= 0){
+                                  queryPush = {...queryPush, products: obj};
+                                  subtotal = shoppingChart.subtotal + obj.quantity * product.variants[x].price;
+                              }else{
+                                  reject('No such quantity availeable.');
+                              }
+                          }else{
+                              reject('No se ajusta a ninguna variante.');
+                          }
+                      }
+                    }else{     
+                        var j =0;
+                        var found2 = false;
+                        while( j < shoppingChart.prodcuts.length && !found2){
+                            if(obj.productId === shoppingChart.prodcuts[j].productId && 
+                                obj.variant?.length === shoppingChart.prodcuts[j]?.variants?.length){
+                                    found2 = true;
+                                }
+                            if(!found2) j++;
+                        } 
+                        if(found2){
+                            if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
+                                subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
+                                    let pos2 = `products.${i}.quantity`;
+                                    console.log(pos2);
+                                    querySet[pos2] = shoppingChart.products[index].quantity  + obj.quantity;
+                            }else{
+                                reject('No such quantity availeable.');
                             }
-                        }
-                        if(object.remove){
-                            shoppingChart.products[index].quantity -= object.quantity;
-                            shoppingChart.subtotal -=  object.quantity*shoppingChart.products[index].price;
-                        }
+                        }   else{
+                            if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
+                                subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
+                                queryPush = {...queryPush, prodcuts: obj};
+                            }else{
+                                reject('No such quantity availeable.');
+                            }
+                        }               
+                        
                     }
-                    if(object.add){
-                        delete object.add;
-                        shoppingChart.products.push(object);
-                        shoppingChart.subtotal += object.quantity;
-                    }
-                    if(object.remove){
-                        delete object.remove;
-                        shoppingChart.products.push(object);
-                        shoppingChart.subtotal
+                    if(index - addProducts.length === -1){
+                        console.log(querySet, queryPush)
+                        resolve({$push: queryPush, $set: {...querySet, subtotal: subtotal}});
                     }
                 })
-                
-            })
+            }else{
+                resolve(null);
+            }
+        });
+        var removePromise = new Promise(async (resolve, reject)=>{
+            if(removeProducts){
+                removeProducts.forEach(async (element, index)=>{
+                    let querySet = {};
+                    let queryPull = {};
+                    let product = await Product.findOne({_id: element.productId});
+                        //para recorrer el array de variantes de productos del carrito
+                        if(shoppingChart.products){
+                        var found = false;
+                        var i = 0;
+                        while (i < shoppingChart.products.length && !found) {
+                          if (
+                            element.variant.color === shoppingChart.products[i].variant.color &&
+                            element.variant.size === shoppingChart.products[i].variant.size &&
+                            element.variant.cool === shoppingChart.products[i].variant.cool &&
+                            element.variant.type === shoppingChart.products[i].variant.type &&
+                            element.variant.dimension === shoppingChart.products[i].variant.dimension &&
+                            element.variant.measure === shoppingChart.products[i].variant.measure) {
+                            found = true;
+                          }
+                          if (!found) i++;
+                        }
+                        if (found) {
+                            
+                            if(shoppingChart.products[index].quantity - element.quantity>0){
+                                let pos1 = `products.${i}.quantity`;
+                                console.log(pos1);
+                                querySet[pos1] = shoppingChart.products[index].quantity - element.quantity;
+                            }
+                            else{
+                                queryPull = {...queryPull, products:element}
+                            }
+                            console.log(removeProducts, i)
+                            querySet = {...querySet, subtotal: shoppingChart.subtotal - removeProducts[index].variant.price*removeProducts[index].quantity, totalPrice: shoppingChart.totalPrice - removeProducts[index].variant.price*removeProducts[index].quantity}
+                        }else{
+                            reject('No variant found for this object.')
+                        }
+    
+                    }else{
+                        if (shoppingChart.stock - element.quantity >0) {
+                            let pos2 = `products.${i}.quantity`;
+                            console.log(pos2);
+                            querySet[pos2] = shoppingChart.products[index].quantity - element.quantity;
+                          } else {
+                            queryPull = {...queryPull, products: element};
+                          }
+                          console.log(shoppingChart.subtotal, element.quantity, product)
+                          querySet = {...querySet, subtotal: shoppingChart.subtotal- element.quantity*product.price}
+                    }
+                    if(index - removeProducts.length === -1){
+                        let finalQuery = {$set: querySet, $pull: queryPull};
+                        console.log(finalQuery);
+                        resolve(finalQuery);
+                    }
+                })
+            }else{
+                resolve(null);
+            }
+        });
+        const queryAdd = await addPromise;
+        var shoppingChartUpdated1, shoppingChartUpdated2;
+        if(queryAdd) {
+            console.log('query: '+queryAdd, subtotal)
+            shoppingChartUpdated1 = await ShoppingChart.findOneAndUpdate({user: id},{...queryAdd},{new: true});
+            shoppingChart = shoppingChartUpdated1;
         }
+        const queryRemove = await removePromise;
+        if(queryRemove) shoppingChartUpdated2 = await ShoppingChart.findOneAndUpdate({user: id},{...queryRemove},{new: true});
+        if(!shoppingChartUpdated1 && !shoppingChartUpdated2) return res.status(404).send({message:'No shopping chart updated.', success: false});
+        if(shoppingChartUpdated2) return res.status(200).send({message:'Shopping chart updated successfully.', success: true, shoppingChart: shoppingChartUpdated2});
+        return res.status(200).send({message:'Shopping chart updated succesfully.', success: true, shoppingChart: shoppingChartUpdated1});
     }catch(error){
-        return res.status(500).send({message:'Error updating shopping chart.', success: false, error: error.message, date: Date()});
+        console.log(error)
+        return res.status(500).send({message:'Error updating shopping chart.', success: false, error: error, date: Date()});
     }
 }
 module.exports = {
@@ -167,4 +319,5 @@ module.exports = {
     deleteSgoppingChart,
     getShoppingChart,
     removeProducts,
+    edit
 }
