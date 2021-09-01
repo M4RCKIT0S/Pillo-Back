@@ -18,7 +18,7 @@ function createCategory(req, res){
 }
 //Devuelve todas las categorías y subcategorías
 function getCategories(req, res){
-    Category.find({}).populate('subcategories').then((categories)=>{
+    Category.find({}).populate({path:'subcategories',populate:{ path:'products'}}).then((categories)=>{
         if(!categories) return res.status(404).send({message:'No categories found.', success: true, date: Date()});
         return res.status(200).send({message:'Categories found successfully.', categories, success: true, date: Date()});
     }).catch((error)=>{

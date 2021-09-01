@@ -203,7 +203,7 @@ async function getProductsByCategory(req,res){
 async function getProductsBySubCategory(req,res){
     try{
         const {subcategoryId} = req.body;
-        const products = await Subcategory.findById(categoryId).populate('products');
+        const products = await Subcategory.findById(subcategoryId).populate('products');
         if(!products) return res.status(404).send({message:'No products found.', success: false, date: Date()});
         return res.status(200).send({message:'Producst found successfully by subcategory.', success: true, products, date: Date()});
     }catch(error){
