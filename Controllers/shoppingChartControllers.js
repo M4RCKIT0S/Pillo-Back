@@ -205,7 +205,7 @@ async function edit(req, res){
                         var found2 = false;
                         while( j < shoppingChart.prodcuts.length && !found2){
                             if(obj.productId === shoppingChart.prodcuts[j].productId && 
-                                obj.variant?.length === shoppingChart.prodcuts[j]?.variants?.length){
+                                obj.variant.length === shoppingChart.prodcuts[j].variants.length){
                                     found2 = true;
                                 }
                             if(!found2) j++;
