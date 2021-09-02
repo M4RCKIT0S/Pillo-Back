@@ -13,7 +13,7 @@ router.post('/createProduct',   checkAuth.checkLoggedIn, checkAuth.checkIfAdmin,
 //Obtener los productos
 router.get('/getProducts',  productControllers.getProducts);
 //Obtener un producto en concreto
-router.get('/getProduct',   productControllers.getProduct);
+router.post('/getProduct',   productControllers.getProduct);
 //Eliminar un producto
 router.delete('/deleteProduct', checkAuth.checkLoggedIn, checkAuth.checkIfAdmin, productControllers.deleteProduct);
 //Editar un producto, por ahora los extra fields no se pueden editar en detalle, solo añadir nuevos o borrar los ya existentes
