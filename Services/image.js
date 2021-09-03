@@ -81,7 +81,7 @@ const uploadMultipleImages = async (files, path)=>{
 
             blobStream.on("error", (err) => {
               publicUrls.pop(publicUrl) //If any error with the image, link is removed from array
-              reject(err.message);
+              return err.message
             });
 
         
@@ -102,16 +102,16 @@ const uploadMultipleImages = async (files, path)=>{
         
             });
         
-            blobStream.end(file?.buffer);
+            blobStream.end(file.buffer);
           })
 
           return publicUrls
 
         } catch (err) {
           if (err.code == "LIMIT_FILE_SIZE") {
-             reject("Files size cannot be larger than 2MB!")
+             return "Files size cannot be larger than 2MB!"
             }
-            reject(`Could not upload the file. ${err}`);
+            return `Could not upload the file. ${err}`
         }
 }
 
