@@ -23,7 +23,11 @@ async function createShoppingChart(req, res){
             var promiseForEach = new Promise((resolve, reject) =>{
                 products.forEach(async (element, index, array) => {
                     console.log(element)
-                    var product = await Product.findOne({_id: element.productId});
+                    try{
+                        var product = await Product.findOne({_id: element.productId}).exec();
+                    }catch(error){
+                        reject(error);
+                    }
                     console.log(product);
                     if(element.variant){
                         if(product.variants){
@@ -82,6 +86,7 @@ async function createShoppingChart(req, res){
                 });
         }else{
             try{
+                console.log('a')
                 const shoppingChartModel = new ShoppingChart({
                     user: id,
                     products,
@@ -109,7 +114,7 @@ async function deleteSgoppingChart(req ,res){
 async function getShoppingChart(req, res){
     try{
         const user = req.userData.id;
-        const shoppingChart = await ShoppingChart.findOne({user}).populate('products.product');
+        const shoppingChart = await ShoppingChart.findOne({user}).populate('products.productId');
         if(!shoppingChart) return res.status(404).send({message:'No shopping chart found.', success: false, date: Date()});
         return res.status(200).send({message:'Shopping chart found successfully.', success: true, shoppingChart, date:Date()});
     }catch(error){
@@ -140,7 +145,7 @@ async function edit(req, res){
             if(addProducts){
                 addProducts.forEach(async(obj, index)=>{
                     var productId = obj.productId;
-                    let product = await Product.findOne({_id: productId});
+                    let product = await Product.findOne({_id: productId}).exec();
                     let queryPush = {};
                     let querySet = {};
                     if(product.variants && obj.variant){
@@ -203,15 +208,14 @@ async function edit(req, res){
                     }else{     
                         var j =0;
                         var found2 = false;
-                        while( j < shoppingChart.prodcuts.length && !found2){
-                            if(obj.productId === shoppingChart.prodcuts[j].productId && 
-                                obj.variant?.length === shoppingChart.prodcuts[j]?.variants?.length){
+                        while( j < shoppingChart.products.length && !found2){
+                            if(obj.productId == shoppingChart.products[j].productId ){
                                     found2 = true;
                                 }
                             if(!found2) j++;
                         } 
                         if(found2){
-                            if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
+                            if(product.stock - obj.quantity >=0 && product.maxOrder - (obj.quantity+ shoppingChart.products[j].quantity) >=0){
                                 subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
                                     let pos2 = `products.${i}.quantity`;
                                     console.log(pos2);
@@ -222,7 +226,7 @@ async function edit(req, res){
                         }   else{
                             if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
                                 subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
-                                queryPush = {...queryPush, prodcuts: obj};
+                                queryPush = {...queryPush, products: obj};
                             }else{
                                 reject('No such quantity availeable.');
                             }
@@ -243,9 +247,10 @@ async function edit(req, res){
                 removeProducts.forEach(async (element, index)=>{
                     let querySet = {};
                     let queryPull = {};
-                    let product = await Product.findOne({_id: element.productId});
+                    let product = await Product.findOne({_id: element.productId}).exec();
+                    if(element.variant ) console.log(element)
                         //para recorrer el array de variantes de productos del carrito
-                        if(shoppingChart.products){
+                        if(shoppingChart.products && element.variant){
                         var found = false;
                         var i = 0;
                         while (i < shoppingChart.products.length && !found) {
@@ -277,15 +282,27 @@ async function edit(req, res){
                         }
     
                     }else{
-                        if (shoppingChart.stock - element.quantity >0) {
-                            let pos2 = `products.${i}.quantity`;
-                            console.log(pos2);
-                            querySet[pos2] = shoppingChart.products[index].quantity - element.quantity;
-                          } else {
-                            queryPull = {...queryPull, products: element};
-                          }
-                          console.log(shoppingChart.subtotal, element.quantity, product)
-                          querySet = {...querySet, subtotal: shoppingChart.subtotal- element.quantity*product.price}
+                        //cambiar, compararIds
+                        var e = 0, found3 = false;
+                        while(!found3 && e<shoppingChart.products.length){
+                            if(shoppingChart.products[e].productId == element.productId) found3 = true;
+                            if(!found3) e++;
+                        }
+                        if(found3){
+                            if (shoppingChart.products[e].quantity - element.quantity >0) {
+                                let pos2 = `products.${e}.quantity`;
+                                console.log(pos2);
+                                querySet[pos2] = shoppingChart.products[e].quantity - element.quantity;
+                              } else {
+                                queryPull = {...queryPull, products: element};
+                              }
+                              console.log(shoppingChart.subtotal, element.quantity, product)
+                              if(shoppingChart.products[e].quantity - element.quantity <0){
+                                  querySet = {...querySet, subtotal: shoppingChart.subtotal - elementshoppingChart.products[e].quantity*product.price};
+                              }else{
+                                  querySet = {...querySet, subtotal: shoppingChart.subtotal- element.quantity*product.price}
+                              }
+                        }
                     }
                     if(index - removeProducts.length === -1){
                         let finalQuery = {$set: querySet, $pull: queryPull};

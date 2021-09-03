@@ -6,28 +6,32 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
     status: {
-        type: String,
-        default:'Confirmed',
-        enum:['Confirmed']
+        key: Number,
+        value: String
     },
-    name:{
-        type: String
+    user:{
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'user'
     },
     phone:{
         type: Number,
         required: true,
     },
-    products:{
-        type: [mongoose.SchemaTypes.ObjectId],
-        ref: 'product'
-    },
+    products:[{
+        product:{
+            type: [mongoose.SchemaTypes.ObjectId],
+            ref: 'product'
+        },
+        quantity: Number,
+        variant: mongoose.SchemaTypes.Mixed
+    }],
     shops:{
         type:Number,
     },
     paymentMethod:{
         type: String,
         default: 'Efectivo',
-        enum:['Efectivo']
+        enum:['Efectivo', 'Bizum']
     },
     address:{
         street: String,
