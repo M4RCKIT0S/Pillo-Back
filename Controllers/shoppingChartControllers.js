@@ -156,7 +156,7 @@ async function edit(req, res){
                           //Se comprueba si está en el producto esa variante y luego se comprueba si está o no en el carrito
                           //dividir querys de añadir uno nuevo o uno ya existente
                           console.log(i)
-                        if(
+                        if(shoppingChart.products[i].variant &&
                           obj.variant.color === shoppingChart.products[i].variant.color &&
                           obj.variant.size === shoppingChart.products[i].variant.size &&
                           obj.variant.cool === shoppingChart.products[i].variant.cool &&

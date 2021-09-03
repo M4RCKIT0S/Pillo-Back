@@ -12,7 +12,7 @@ router.post('/createShoppingChart', checkAuth.checkLoggedIn, shoppingChartContro
 //Eliminar un carrito de la compra
 router.delete('/delete', checkAuth.checkLoggedIn, shoppingChartControllers.deleteSgoppingChart);
 //Obtener el carrito
-router.get('/get', checkAuth.checkLoggedIn, shoppingChartControllers.getShoppingChart);
+router.post('/get', checkAuth.checkLoggedIn, shoppingChartControllers.getShoppingChart);
 //Eliminar todos los objetos de un carrito
 router.patch('/removeProducts', checkAuth.checkLoggedIn, shoppingChartControllers.removeProducts);
 //Añadir o  eliminar productos de un carrito
