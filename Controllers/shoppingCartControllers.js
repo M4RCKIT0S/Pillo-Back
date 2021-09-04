@@ -1,8 +1,8 @@
 //Models
-const ShoppingChart = require('../Models/shoppingChart');
+const ShoppingCart = require('../Models/shoppingCart');
 const Product = require('../Models/item').product;
 
-async function createShoppingChart(req, res){
+async function createShoppingCart(req, res){
         const {products} = req.body;
         /*{
             products:[{
@@ -17,7 +17,7 @@ async function createShoppingChart(req, res){
         var productsFoundVariantsAndQuantities = [];
         var subtotal = 0;
         var extras = 0;
-        const findIfAlreadyHasOne = await ShoppingChart.findOne({user: id});
+        const findIfAlreadyHasOne = await ShoppingCart.findOne({user: id});
         if(findIfAlreadyHasOne) return res.status(400).send({message:'Bad request. This user already has one.', success: false, date: Date()});
         if(products){
             var promiseForEach = new Promise((resolve, reject) =>{
@@ -72,7 +72,7 @@ async function createShoppingChart(req, res){
                 });
                 promiseForEach.then( async()=>{
                     var totalPrice = subtotal + extras;
-                    const shoppingChartModel = new ShoppingChart({
+                    const shoppingChartModel = new ShoppingCart({
                         user: id,
                         products,
                         subtotal,
@@ -87,7 +87,7 @@ async function createShoppingChart(req, res){
         }else{
             try{
                 console.log('a')
-                const shoppingChartModel = new ShoppingChart({
+                const shoppingChartModel = new ShoppingCart({
                     user: id,
                     products,
                     subtotal
@@ -100,10 +100,10 @@ async function createShoppingChart(req, res){
         }
 }
 //Eliminar el carrito de la persona logeada
-async function deleteSgoppingChart(req ,res){
+async function deleteShoppingCart(req ,res){
     try{
         const userId = req.userData.id;
-        const shoppingChartDeleted = await ShoppingChart.findOneAndDelete({user: userId});
+        const shoppingChartDeleted = await ShoppingCart.findOneAndDelete({user: userId});
         if(!shoppingChartDeleted) return res.status(404).send({message:'No shopping chart found.', success: false, date: Date()});
         return res.status(200).send({message:'Shopping chart deleted successfully.', success: true, shoppingChartDeleted, date: Date()});
     }catch(error){
@@ -111,10 +111,10 @@ async function deleteSgoppingChart(req ,res){
     }
 }
 //Devuelve el carrito de la persona logeada
-async function getShoppingChart(req, res){
+async function getShoppingCart(req, res){
     try{
         const user = req.userData.id;
-        const shoppingChart = await ShoppingChart.findOne({user}).populate('products.productId');
+        const shoppingChart = await ShoppingCart.findOne({user}).populate('products.productId');
         if(!shoppingChart) return res.status(404).send({message:'No shopping chart found.', success: false, date: Date()});
         return res.status(200).send({message:'Shopping chart found successfully.', success: true, shoppingChart, date:Date()});
     }catch(error){
@@ -127,7 +127,7 @@ async function removeProducts(req,res){
     const {id} = req.userData;
     const removeAllProductsQuery =  {$unset:{products:1},$set:{subtotal: 0, extraPrice:0, totalPrice:0}};
     try{
-        const shoppingChart = await ShoppingChart.findOneAndUpdate({user: id}, {...removeAllProductsQuery},{new: true, runValidators: true});
+        const shoppingChart = await ShoppingCart.findOneAndUpdate({user: id}, {...removeAllProductsQuery},{new: true, runValidators: true});
         if(!shoppingChart) return res.status(404).send({message:'No shopping chart found.', success: false, date: Date()});
         return res.status(200).send({message:'Shopping chart updated successfully.', success: true, shoppingChart, date: Date()});
         }catch(error){
@@ -139,7 +139,7 @@ async function edit(req, res){
     const {addProducts, removeProducts} = req.body;
     try{
         var subtotal = 0;
-        var shoppingChart = await ShoppingChart.findOne({user: id});
+        var shoppingChart = await ShoppingCart.findOne({user: id});
         if(!shoppingChart) return res.status(404).send({message:'This user doesn´t have a shopping chart.', success: false, date: Date()});
         var addPromise = new Promise(async (resolve, reject)=>{
             if(addProducts){
@@ -337,11 +337,11 @@ async function edit(req, res){
         var shoppingChartUpdated1, shoppingChartUpdated2;
         if(queryAdd) {
             console.log('query: '+queryAdd, subtotal)
-            shoppingChartUpdated1 = await ShoppingChart.findOneAndUpdate({user: id},{...queryAdd},{new: true});
+            shoppingChartUpdated1 = await ShoppingCart.findOneAndUpdate({user: id},{...queryAdd},{new: true});
             shoppingChart = shoppingChartUpdated1;
         }
         const queryRemove = await removePromise;
-        if(queryRemove) shoppingChartUpdated2 = await ShoppingChart.findOneAndUpdate({user: id},{...queryRemove},{new: true});
+        if(queryRemove) shoppingChartUpdated2 = await ShoppingCart.findOneAndUpdate({user: id},{...queryRemove},{new: true});
         if(!shoppingChartUpdated1 && !shoppingChartUpdated2) return res.status(404).send({message:'No shopping chart updated.', success: false});
         if(shoppingChartUpdated2) return res.status(200).send({message:'Shopping chart updated successfully.', success: true, shoppingChart: shoppingChartUpdated2});
         return res.status(200).send({message:'Shopping chart updated succesfully.', success: true, shoppingChart: shoppingChartUpdated1});
@@ -351,9 +351,9 @@ async function edit(req, res){
     }
 }
 module.exports = {
-    createShoppingChart,
-    deleteSgoppingChart,
-    getShoppingChart,
+    createShoppingCart,
+    deleteShoppingCart,
+    getShoppingCart,
     removeProducts,
     edit
 }

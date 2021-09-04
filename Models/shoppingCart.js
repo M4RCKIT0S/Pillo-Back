@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const shoppingChartSchema = mongoose.Schema({
+const shoppingCartSchema = mongoose.Schema({
     user:{
         type: mongoose.SchemaTypes.ObjectId,
         required: true,
@@ -31,4 +31,4 @@ const shoppingChartSchema = mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('shoppingChart', shoppingChartSchema);
+module.exports = mongoose.model('shoppingCart', shoppingCartSchema);

@@ -7,7 +7,7 @@ const postalCodeRoutes = require('./Routes/postalCodeRoutes');
 const categoryRoutes = require('./Routes/categoryRoutes');
 const shopRoutes = require('./Routes/shopRoutes');
 const productRoutes = require('./Routes/productRoutes');
-const shoppingChartRoutes = require('./Routes/shoppingChartRoutes');
+const shoppingCartRoutes = require('./Routes/shoppingCartRoutes');
 const orderRoutes = require('./Routes/orderRoutes');
 
 /**
@@ -22,7 +22,7 @@ app.use('/postalCode', postalCodeRoutes);
 app.use('/category', categoryRoutes);
 app.use('/shop', shopRoutes);
 app.use('/product', productRoutes);
-app.use('/shoppingChart', shoppingChartRoutes);
+app.use('/shoppingCart', shoppingCartRoutes);
 app.use('/order', orderRoutes);
 
 module.exports = app;

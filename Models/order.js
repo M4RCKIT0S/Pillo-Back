@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-const orderSchema = new mongoose.Schema({
+const orderSchema =  mongoose.Schema({
     number:{
         type: Number,
-        required: true
+        required: false
     },
     status: {
         key: Number,
@@ -63,6 +63,7 @@ orderSchema.pre('save', function(next){
 })
 const Order = mongoose.model('order', orderSchema);
 function validatePostalCode(postalCode){
-    return postalCode.match(/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/)
+    const postalCoderegex = new RegExp(/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/);
+    return postalCoderegex.test(postalCode)
 }
-mongoose.exports = Order;
+module.exports =  mongoose.model('order', orderSchema);
