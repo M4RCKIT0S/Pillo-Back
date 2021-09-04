@@ -224,11 +224,12 @@ async function edit(req, res){
                                 reject('No such quantity availeable.');
                             }
                         }   else{
+                            console.log(product.stock, obj.quantity, product.maxOrder)
                             if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
                                 subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
                                 queryPush = {...queryPush, products: obj};
                             }else{
-                                reject('No such quantity availeable.');
+                                reject('No such quantity availeable.x');
                             }
                         }               
                         
@@ -255,6 +256,7 @@ async function edit(req, res){
                         var i = 0;
                         while (i < shoppingChart.products.length && !found) {
                           if (
+                              shoppingChart.products[i].variant &&
                             element.variant.color === shoppingChart.products[i].variant.color &&
                             element.variant.size === shoppingChart.products[i].variant.size &&
                             element.variant.cool === shoppingChart.products[i].variant.cool &&
@@ -266,17 +268,32 @@ async function edit(req, res){
                           if (!found) i++;
                         }
                         if (found) {
-                            
-                            if(shoppingChart.products[index].quantity - element.quantity>0){
+                            var isInVariants = false, positionInVariant =0;
+                            while(!isInVariants && positionInVariant<product.variants.length){
+                                if (
+                                product.variants && 
+                                  element.variant.color === product.variants[positionInVariant].color &&
+                                  element.variant.size === product.variants[positionInVariant].size &&
+                                  element.variant.cool === product.variants[positionInVariant].cool &&
+                                  element.variant.type === product.variants[positionInVariant].type &&
+                                  element.variant.dimension === product.variants[positionInVariant].dimension &&
+                                  element.variant.measure ===  product.variants[positionInVariant].measure) {
+                                  isInVariants = true;
+                                }
+                                if(!isInVariants) positionInVariant++;
+                            }
+                            if(!isInVariants) reject('No variant matches the given one.');
+                            if(shoppingChart.products[i].quantity - element.quantity>0){
                                 let pos1 = `products.${i}.quantity`;
                                 console.log(pos1);
-                                querySet[pos1] = shoppingChart.products[index].quantity - element.quantity;
+                                querySet[pos1] = shoppingChart.products[i].quantity - element.quantity;
                             }
                             else{
                                 queryPull = {...queryPull, products:element}
                             }
-                            console.log(removeProducts, i)
-                            querySet = {...querySet, subtotal: shoppingChart.subtotal - removeProducts[index].variant.price*removeProducts[index].quantity, totalPrice: shoppingChart.totalPrice - removeProducts[index].variant.price*removeProducts[index].quantity}
+                            //console.log(positionInVariant,product, product.variants[positionInVariant])
+                            //console.log(shoppingChart.subtotal,product.variants[positionInVariant].price, product.variants[positionInVariant].price*removeProducts[index].quantity,shoppingChart.subtotal - product.variants[positionInVariant].price*removeProducts[index].quantity)
+                            querySet = {...querySet, subtotal: shoppingChart.subtotal - product.variants[positionInVariant].price*removeProducts[index].quantity, totalPrice: shoppingChart.totalPrice - product.variants[positionInVariant].price*removeProducts[index].quantity}
                         }else{
                             reject('No variant found for this object.')
                         }
@@ -298,7 +315,9 @@ async function edit(req, res){
                               }
                               console.log(shoppingChart.subtotal, element.quantity, product)
                               if(shoppingChart.products[e].quantity - element.quantity <0){
-                                  querySet = {...querySet, subtotal: shoppingChart.subtotal - elementshoppingChart.products[e].quantity*product.price};
+                                  querySet = {...querySet, subtotal: shoppingChart.subtotal - shoppingChart.products[e].quantity*product.price};
+                                  object = {productId: element.productId, quantity: shoppingChart.products[e].quantity};
+                                  queryPull = {...queryPull, products: object};
                               }else{
                                   querySet = {...querySet, subtotal: shoppingChart.subtotal- element.quantity*product.price}
                               }
