@@ -9,6 +9,7 @@ async function createOrder(req, res){
         if(!products) return res.status(400).send({message:'You can not create an order without products.', success: false, date: Date()});
         const productsFromDb = await promiseToFindProducts(products);
         console.log(productsFromDb)
+        if(!checkStock(productsFromDb, products)) return res.status(400).send({message:'Bad request, not all quantities are availeable.', success:false, date: Date()});
         const updatedProducst = await promiseToUpdateStock(productsFromDb, products);
         console.log(updatedProducst)
         if(typeof(subtotal)=='number'){
@@ -42,6 +43,46 @@ const promiseToFindProducts = (products) =>{
         })
     })
 }
+const checkStock = (productsFromDb, products) =>{
+    var areAllValid = false;
+    products.forEach((el, index)=>{
+        if(el.variant){
+            var found = false, i=0;
+            while(!found && i<productsFromDb.length){
+                if(el.productTd===productsFromDb[i].productId) found = true;
+                if(!found) i++;
+            }
+            if(!found) reject(`No se ha encontrado producto con id: ${el.productId}`);
+            var found2 = false, j =0;
+            if(productsFromDb[i].variants){
+                while(!found2 && j<productsFromDb[i].variants.length){
+                    if( productsFromDb[i].variants && 
+                        el.variant.size === productsFromDb[i].variants[j].size &&
+                        el.variant.color === productsFromDb[i].variants[j].color &&
+                        el.variant.dimension === productsFromDb[i].variants[j].dimension &&
+                        el.variant.cool === productsFromDb[i].variants[j].cool &&
+                        el.variant.measure === productsFromDb[i].variants[j].measure &&
+                        el.variant.type === productsFromDb[i].variants[j].type ){
+                        found2 = true;
+                    }
+                    if(!found2) j++;
+                }
+                if(!found2) return false;
+                if(productsFromDb[i].variants[j] - el.quantity<0) return false;
+
+        }else{
+            var found3 = false, a =0, quantity;
+            while(!found3 && a< productsFromDb.length){
+                if(element.productId===productsFromDb[a].productId) found3 = true;
+                if(!found3) a++;
+            }
+            if(!found) return false;
+            if(productsFromDb[a].stock - el.quantity<0) return false;
+        }
+
+        if(index-products.length===-1) return true;
+    }})
+}
 const promiseToUpdateStock = (productsFromDb, products) =>{
     var productsUpdated = [];
     return new Promise((resolve, reject)=>{
@@ -63,24 +104,35 @@ const promiseToUpdateStock = (productsFromDb, products) =>{
                             element.variant.cool === productsFromDb[i].variants[j].cool &&
                             element.variant.measure === productsFromDb[i].variants[j].measure &&
                             element.variant.type === productsFromDb[i].variants[j].type ){
-                            found = true;
-                            var quantity = 0;
-                            if(typeof(element.quantity) === 'number'){
-                                 quantity = productsFromDb[i].variants[j].stock - element.quantity;
-                            }else{
-                                reject('Quantity of object is not a number.');
-                            }
-                            try{
-                                var variantToUpdate = `variants.${j}.stock`;
-                                var obj = {};
-                                obj[variantToUpdate] = quantity
-                                var productUpdated = await Product.findOneAndUpdate({_id: element.productId},{$set:obj},{new: true}).exec();
-                            }catch(error){
-                                reject(error)
-                            }
-                            productsUpdated.push(productUpdated);
+                            found2 = true;
                         }
                         if(!found2) j++;
+                    }
+                    if(found2){
+                        var quantity = 0;
+                        if(typeof(element.quantity) === 'number'){
+                            quantity = productsFromDb[i].variants[j].stock - element.quantity;
+                            console.log(quantity)
+                            if(quantity<0){
+                                reject(`No such quantity availeable for ${productsFromDb[i].name}`);
+                                return;
+                            } 
+                                try{
+                                    var variantToUpdate = `variants.${j}.stock`;
+                                    var obj = {};
+                                    obj[variantToUpdate] = quantity
+                                    console.log(obj)
+                                    var productUpdated = await Product.findOneAndUpdate({_id: element.productId},{$set:obj},{new: true}).exec();
+                                }catch(error){
+                                    reject(error)
+                                }
+                                productsUpdated.push(productUpdated);
+                        }else{
+                            reject('Quantity of object is not a number.');
+                        }
+                        
+                    }else{
+                        reject('No such variant found.');
                     }
                 }
             }else{
@@ -89,7 +141,7 @@ const promiseToUpdateStock = (productsFromDb, products) =>{
                     if(element.productId===productsFromDb[a].productId) found3 = true;
                     if(!found3) a++;
                 }
-                if(!found3) reject(`No object found for id: ${element._id}`);
+                if(!found3) reject(`No object found for id: ${element.productId}`);
                 var quantity = 0;
                 if(typeof(element.quantity) === 'number'){
                     quantity = productsFromDb[a].stock - element.quantity;
