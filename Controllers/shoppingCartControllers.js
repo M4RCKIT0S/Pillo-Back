@@ -195,7 +195,7 @@ async function edit(req, res){
                               if(!encontrado )x++
                           }
                           if(encontrado){
-                              if(product.variants[i].stock - obj.quantity >= 0 && product.maxOrder - obj.quantity >= 0){
+                              if(product.variants[x].stock - obj.quantity >= 0 && product.maxOrder - obj.quantity >= 0){
                                   queryPush = {...queryPush, products: obj};
                                   subtotal = shoppingChart.subtotal + obj.quantity * product.variants[x].price;
                               }else{

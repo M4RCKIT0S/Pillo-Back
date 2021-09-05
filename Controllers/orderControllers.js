@@ -81,7 +81,7 @@ const checkStock = (productsFromDb, products) =>{
         }
 
         if(index-products.length===-1) return true;
-    }})
+    })
 }
 const promiseToUpdateStock = (productsFromDb, products) =>{
     var productsUpdated = [];
