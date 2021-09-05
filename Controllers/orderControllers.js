@@ -73,7 +73,7 @@ const checkStock = (productsFromDb, products) =>{
         }else{
             var found3 = false, a =0, quantity;
             while(!found3 && a< productsFromDb.length){
-                if(element.productId===productsFromDb[a].productId) found3 = true;
+                if(el.productId===productsFromDb[a].productId) found3 = true;
                 if(!found3) a++;
             }
             if(!found) return false;
