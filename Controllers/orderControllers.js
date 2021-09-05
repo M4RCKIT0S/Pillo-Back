@@ -69,7 +69,7 @@ const checkStock = (productsFromDb, products) =>{
                 }
                 if(!found2) return false;
                 if(productsFromDb[i].variants[j] - el.quantity<0) return false;
-
+            }
         }else{
             var found3 = false, a =0, quantity;
             while(!found3 && a< productsFromDb.length){
