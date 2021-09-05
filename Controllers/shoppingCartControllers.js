@@ -167,11 +167,25 @@ async function edit(req, res){
                         }
                         if (!found) i++;
                       }
-                      
+                      var found4 = false, k =0;
+                      while(!found4 && k<product.variants.length){
+                          if(product.variants &&
+                            obj.variant.color === product.variants[k].color &&
+                          obj.variant.size === product.variants[k].size &&
+                          obj.variant.cool === product.variants[k].cool &&
+                          obj.variant.type === product.variants[k].type &&
+                          obj.variant.dimension === product.variants[k].dimension &&
+                          obj.variant.measure === product.variants[k].measure) {
+                          found4 = true;
+                        }
+                        if(!found4) k++;
+                      }
+                      if(!found4) reject('No variant matches the given one.');
                       console.log(found)
                       if (found) {
-                        if (product.variants[i].stock - (obj.quantity + shoppingChart.products[i].quantity) >= 0 && product.maxOrder - (obj.quantity + shoppingChart.products[i].quantity )>= 0) {
-                          subtotal = shoppingChart.subtotal + obj.quantity * product.variants[i].price;
+                          console.log(product.variants[k],shoppingChart.products[i].quantity, obj.quantity,product.variants[k].stock,product.variants[k].stock - (obj.quantity + shoppingChart.products[i].quantity),product.maxOrder - (obj.quantity + shoppingChart.products[i].quantity ))
+                        if (product.variants[k].stock - (obj.quantity + shoppingChart.products[i].quantity) >= 0 && product.maxOrder - (obj.quantity + shoppingChart.products[i].quantity )>= 0) {
+                          subtotal = shoppingChart.subtotal + obj.quantity * product.variants[k].price;
                           let pos2 = `products.${i}.quantity`;
                             console.log(pos2);
                             querySet[pos2] = shoppingChart.products[i].quantity + obj.quantity;
