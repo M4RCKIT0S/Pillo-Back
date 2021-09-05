@@ -49,10 +49,10 @@ const checkStock = (productsFromDb, products) =>{
         if(el.variant){
             var found = false, i=0;
             while(!found && i<productsFromDb.length){
-                if(el.productTd===productsFromDb[i].productId) found = true;
+                if(el.productId===productsFromDb[i].productId) found = true;
                 if(!found) i++;
             }
-            if(!found) reject(`No se ha encontrado producto con id: ${el.productId}`);
+            if(!found) return false;
             var found2 = false, j =0;
             if(productsFromDb[i].variants){
                 while(!found2 && j<productsFromDb[i].variants.length){
