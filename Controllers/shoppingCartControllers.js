@@ -20,8 +20,10 @@ async function createShoppingCart(req, res){
         const findIfAlreadyHasOne = await ShoppingCart.findOne({user: id});
         if(findIfAlreadyHasOne) return res.status(400).send({message:'Bad request. This user already has one.', success: false, date: Date()});
         if(products){
-            var promiseForEach = new Promise((resolve, reject) =>{
-                products.forEach(async (element, index, array) => {
+            var promiseForEach = new Promise(async(resolve, reject) =>{
+                for(var p =0;p<products.length;p++) {
+                    var element = products[p];
+                    var index = p;
                     console.log(element)
                     try{
                         var product = await Product.findOne({_id: element.productId}).exec();
@@ -67,7 +69,7 @@ async function createShoppingCart(req, res){
                         if(index - products.length === -1){
                             resolve();
                         }
-                })                           
+                }                           
                     
                 });
                 promiseForEach.then( async()=>{
@@ -143,7 +145,8 @@ async function edit(req, res){
         if(!shoppingChart) return res.status(404).send({message:'This user doesn´t have a shopping chart.', success: false, date: Date()});
         var addPromise = new Promise(async (resolve, reject)=>{
             if(addProducts){
-                addProducts.forEach(async(obj, index)=>{
+                for(var k =0;k<addProducts.length;k++){
+                    var obj = addProducts[k], index = k;
                     var productId = obj.productId;
                     let product = await Product.findOne({_id: productId}).exec();
                     let queryPush = {};
@@ -252,14 +255,15 @@ async function edit(req, res){
                         console.log(querySet, queryPush)
                         resolve({$push: queryPush, $set: {...querySet, subtotal: subtotal}});
                     }
-                })
+                }
             }else{
                 resolve(null);
             }
         });
         var removePromise = new Promise(async (resolve, reject)=>{
             if(removeProducts){
-                removeProducts.forEach(async (element, index)=>{
+                for(var k =0; k<removeProducts.length;k++){
+                    var element = removeProducts[k], index = k;
                     let querySet = {};
                     let queryPull = {};
                     let product = await Product.findOne({_id: element.productId}).exec();
@@ -342,7 +346,7 @@ async function edit(req, res){
                         console.log(finalQuery);
                         resolve(finalQuery);
                     }
-                })
+                }
             }else{
                 resolve(null);
             }

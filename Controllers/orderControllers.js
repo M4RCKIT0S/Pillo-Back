@@ -5,6 +5,8 @@ async function createOrder(req, res){
     try {
         const userId = req.userData.id;
         const {status, phoneNumber, products, paymentMethod, address, subtotal, tip, notes} = req.body;
+        if((status && (!(typeof(status.key) === 'number') || !(typeof(status.value) ==='string') )) || (subtotal && !(typeof(subtotal) === 'number'))  || (phoneNumber &&!(typeof(phoneNumber) ==='number')) || (paymentMethod && !(typeof(paymentMethod)==='string')) || (tip && !(typeof(tip) ==='number')) || (notes && !(typeof(notes) === 'string')) || (address && !(typeof(address.street) === 'string') ) || (address && !(typeof(address.city)==='string')) || (address && !(typeof(address.postalCode)==='number')) )
+        return res.status(400).send({message:'One or more parameters have an invalid format. Please try again.', success: false, date: Date()});
         var total =0;
         if(!products) return res.status(400).send({message:'You can not create an order without products.', success: false, date: Date()});
         const productsFromDb = await promiseToFindProducts(products);
@@ -27,20 +29,23 @@ async function createOrder(req, res){
         const orderSaved = await order.save();
         return res.status(200).send({message:'Order saved successfully.', success: true, orderSaved, date: Date()});
     } catch (error) {
-        return res.status(500).send({message:'Error saving order.', error: error.message,success: false, date: Date()});
+        return res.status(500).send({message:'Error saving order.', error,success: false, date: Date()});
     }
 }
 const promiseToFindProducts = (products) =>{
     var productsToReturn = [];
-    return new Promise((resolve , reject)=>{
-        products.forEach(async (element, index)=>{
-            var product = await Product.findOne({_id: element.productId}).exec();
+    return new Promise(async(resolve , reject)=>{
+        for(var i=0; i<products.length;i++){
+            var product = await Product.findOne({_id: products[i].productId}).exec();
             var indexOfArray = productsToReturn.findIndex(j=>JSON.stringify(j._id) ==JSON.stringify(product._id));
             if(indexOfArray === -1) productsToReturn.push(product);
-            if(index -products.length === -1){
+            if(i -products.length === -1){
                 resolve(productsToReturn);
             }
-        })
+        }
+        /**products.forEach(async (element, index)=>{
+            
+        })*/
     })
 }
 const checkStock = (productsFromDb, products) =>{
@@ -49,7 +54,8 @@ const checkStock = (productsFromDb, products) =>{
         if(el.variant){
             var found = false, i=0;
             while(!found && i<productsFromDb.length){
-                if(el.productId===productsFromDb[i].productId) found = true;
+                console.log(el.productId, productsFromDb[i]._id)
+                if(JSON.stringify(el.productId)=== JSON.stringify(productsFromDb[i]._id)) found = true;
                 if(!found) i++;
             }
             if(!found) return false;
@@ -68,25 +74,28 @@ const checkStock = (productsFromDb, products) =>{
                     if(!found2) j++;
                 }
                 if(!found2) return false;
-                if(productsFromDb[i].variants[j] - el.quantity<0) return false;
+                console.log(productsFromDb[i].variants[j].stock - el.quantity<0,productsFromDb[i].variants[j].stock,el.quantity )
+                if(productsFromDb[i].variants[j].stock - el.quantity<0) return false;
             }
         }else{
             var found3 = false, a =0, quantity;
             while(!found3 && a< productsFromDb.length){
-                if(el.productId===productsFromDb[a].productId) found3 = true;
+                if(JSON.stringify(el.productId)===JSON.stringify(productsFromDb[a]._id)) found3 = true;
                 if(!found3) a++;
             }
-            if(!found) return false;
+            if(!found3) return false;
             if(productsFromDb[a].stock - el.quantity<0) return false;
         }
-
-        if(index-products.length===-1) return true;
+        console.log(index, products.length)
+        if(index-products.length===-1) areAllValid= true;
     })
+    return areAllValid;
 }
 const promiseToUpdateStock = (productsFromDb, products) =>{
     var productsUpdated = [];
-    return new Promise((resolve, reject)=>{
-        products.forEach(async(element, index)=>{
+    return new Promise(async(resolve, reject)=>{
+        for(var p=0;p<products.length;p++){
+            var element = products[p];
             if(element.variant){
                 var found = false, i =0;
                 while(!found && i<productsFromDb.length){
@@ -137,26 +146,29 @@ const promiseToUpdateStock = (productsFromDb, products) =>{
                 }
             }else{
                 var found3 = false, a =0;
+                console.log(productsFromDb)
                 while(!found3 && a< productsFromDb.length){
-                    if(element.productId===productsFromDb[a].productId) found3 = true;
+                    if(JSON.stringify(element.productId)===JSON.stringify(productsFromDb[a]._id)) found3 = true;
                     if(!found3) a++;
                 }
                 if(!found3) reject(`No object found for id: ${element.productId}`);
                 var quantity = 0;
                 if(typeof(element.quantity) === 'number'){
+                    console.log(a)
+                    console.log(productsFromDb[a])
                     quantity = productsFromDb[a].stock - element.quantity;
                }else{
                    reject('Quantity of object is not a number.');
                }
                 try {
                     var update = await Product.findOneAndUpdate({_id: element.productId},{$set: {stock:quantity}},{new: true}).exec();
-                    productsUpdated = productUpdated.push(update);
+                    productsUpdated.push(update);
                 } catch (error) {
                     reject(error);
                 }
             }
-            if(index - products.length === -1) resolve(productsUpdated);
-        })
+            if(p - products.length === -1) resolve(productsUpdated);
+        };
     })
 }
 const promiseToCountShops = (products, ids)=>{

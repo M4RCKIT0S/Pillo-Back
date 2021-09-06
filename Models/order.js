@@ -18,20 +18,21 @@ const orderSchema =  mongoose.Schema({
         required: true,
     },
     products:[{
-        product:{
-            type: [mongoose.SchemaTypes.ObjectId],
+        productId:{
+            type: mongoose.SchemaTypes.ObjectId,
             ref: 'product'
         },
         quantity: Number,
-        variant: mongoose.SchemaTypes.Mixed
+        variant: mongoose.SchemaTypes.Mixed,
+        _id: false
     }],
     shops:{
         type:Number,
     },
     paymentMethod:{
         type: String,
-        default: 'Efectivo',
-        enum:['Efectivo', 'Bizum']
+        default: 'cash',
+        enum:['cash', 'Bizum']
     },
     address:{
         street: String,
