@@ -19,7 +19,6 @@ let orderInterface ={
 }
 async function createOrder(req, res){
     try {
-        var breakForEachException = {};
         const userId = req.userData.id;
         const {status, phoneNumber, products, paymentMethod, address, subtotal, tip, notes} = req.body;
         var keys = Object.keys(req.body);
