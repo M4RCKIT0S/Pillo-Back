@@ -1,10 +1,42 @@
 const Order = require('../Models/order');
 const Product = require('../Models/item').product;
 
+let orderInterface ={
+ status:{
+     key: 'number',
+     value:'string'
+ },
+ phoneNumber: 'number',
+ paymentMethod: 'string',
+ address:{
+     street: 'string',
+     city: 'string',
+     postalCode: 'number'
+ },
+ subtotal: 'number',
+ tip: 'number',
+ notes: 'string'
+}
 async function createOrder(req, res){
     try {
+        var breakForEachException = {};
         const userId = req.userData.id;
         const {status, phoneNumber, products, paymentMethod, address, subtotal, tip, notes} = req.body;
+        var keys = Object.keys(req.body);
+        for(var keyBody  in keys){
+            if(keys[keyBody]!== 'total' && keys[keyBody]!=='products'){
+                var obj = keys[keyBody]
+                if(typeof(req.body[obj])==='object'){
+                    let i;
+                    var q = Object.keys(obj);
+                    for(i=0; i< q.length;i++){
+                        if(typeof(orderInterface[q])!==typeof(obj.q)) return res.status(500).send({message:`Bad format for ${keys[keyBody]}. It should be ${orderInterface[obj]}.`, success: false, date: Date()});
+                    }
+                }else
+                    if(orderInterface[obj] !== typeof(req.body[obj])) return res.status(500).send({message:`Bad format for ${keys[keyBody]}. It should be ${orderInterface[obj]}.`, success: false, date: Date()});
+            }
+            
+        }
         if((status && (!(typeof(status.key) === 'number') || !(typeof(status.value) ==='string') )) || (subtotal && !(typeof(subtotal) === 'number'))  || (phoneNumber &&!(typeof(phoneNumber) ==='number')) || (paymentMethod && !(typeof(paymentMethod)==='string')) || (tip && !(typeof(tip) ==='number')) || (notes && !(typeof(notes) === 'string')) || (address && !(typeof(address.street) === 'string') ) || (address && !(typeof(address.city)==='string')) || (address && !(typeof(address.postalCode)==='number')) )
         return res.status(400).send({message:'One or more parameters have an invalid format. Please try again.', success: false, date: Date()});
         var total =0;
@@ -195,7 +227,7 @@ async function getOrdersUser(req, res){
         if(!orders) return res.status(404).send({message:'No orders found for this user.', success: false , date: Date()});
         return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
     }catch(error){
-        return res.status(200).send({message:'Error finding orders for this user.', error,success: false, date:Date()});
+        return res.status(500).send({message:'Error finding orders for this user.', error,success: false, date:Date()});
     }
 }
 
@@ -205,7 +237,7 @@ async function getAllOrders(req, res){
         if(!orders) return res.status(404).send({message:'No orders found.', success: false , date: Date()});
         return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
     }catch(error){
-        return res.status(200).send({message:'Error finding orders.', error,success: false, date:Date()});
+        return res.status(500).send({message:'Error finding orders.', error,success: false, date:Date()});
     }
 }
 async function getOrder(req, res){
@@ -215,7 +247,7 @@ async function getOrder(req, res){
         if(!order) return res.status(404).send({message:'No order found for such id.', success: false , date: Date()});
         return res.status(200).send({message:'Ordersfound successfully.', success: true, order, date:Date()});
     }catch(error){
-        return res.status(200).send({message:'Error finding this order.', error,success: false, date:Date()});
+        return res.status(500).send({message:'Error finding this order.', error,success: false, date:Date()});
     }
 }
 async function editOrder(req, res){

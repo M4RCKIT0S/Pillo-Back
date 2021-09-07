@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const orderSchema =  mongoose.Schema({
-    number:{
+    orderNumber:{
         type: Number,
         required: false
     },
@@ -54,15 +54,29 @@ const orderSchema =  mongoose.Schema({
         type: Number,
     },
     notes: String
+},{
+    timestamps: true
 })
+const counterSchema = mongoose.Schema({
+    _id:{
+        type:String,
+        required: true,
+    },
+    seq: {
+        type: Number,
+        default: 0
+    }
+})
+var counter = mongoose.model('counter', counterSchema);
 orderSchema.pre('save', function(next){
     var doc = this;
-    Order.findByIdAndUpdate(doc._id,{$inc:{number:1}},{new: true} ,(err, order)=>{
+    counter.findOneAndUpdate({},{$inc:{seq:1}},{new: true, upsert: true} ,(err, updatedCounter)=>{
         if(err) return next(err);
+        doc.orderNumber = updatedCounter.seq;
         next();
     });
 })
-const Order = mongoose.model('order', orderSchema);
+
 function validatePostalCode(postalCode){
     const postalCoderegex = new RegExp(/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/);
     return postalCoderegex.test(postalCode)
