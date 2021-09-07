@@ -223,9 +223,11 @@ const promiseToCountShops = (products, ids)=>{
 async function getOrdersUser(req, res){
     try{
         const userId = req.userData.id;
-        const orders = await Order.find({user: userId});
+        const orders = await Order.find({user: userId}).populate({path:'products',populate:{ path:'productId'}}).then((orders) =>{
+            return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
+
+        });
         if(!orders) return res.status(404).send({message:'No orders found for this user.', success: false , date: Date()});
-        return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
     }catch(error){
         return res.status(500).send({message:'Error finding orders for this user.', error,success: false, date:Date()});
     }

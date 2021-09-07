@@ -32,7 +32,7 @@ const orderSchema =  mongoose.Schema({
     paymentMethod:{
         type: String,
         default: 'cash',
-        enum:['cash', 'Bizum']
+        enum:['cash', 'card', 'bizum']
     },
     address:{
         street: String,
