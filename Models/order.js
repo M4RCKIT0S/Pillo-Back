@@ -11,7 +11,7 @@ const orderSchema =  mongoose.Schema({
     },
     user:{
         type: mongoose.SchemaTypes.ObjectId,
-        ref: 'user'
+        ref: 'User'
     },
     phone:{
         type: Number,
