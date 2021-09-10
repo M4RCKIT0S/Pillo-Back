@@ -15,21 +15,23 @@ let orderInterface ={
  },
  subtotal: 'number',
  tip: 'number',
- notes: 'string'
+ notes: 'string',
+ name: 'string'
 }
 async function createOrder(req, res){
     try {
         const userId = req.userData.id;
-        const {status, phoneNumber, products, paymentMethod, address, subtotal, tip, notes} = req.body;
+        const {name, status, phoneNumber, products, paymentMethod, address, subtotal, tip, notes} = req.body;
         var keys = Object.keys(req.body);
         for(var keyBody  in keys){
             if(keys[keyBody]!== 'total' && keys[keyBody]!=='products'){
                 var obj = keys[keyBody]
                 if(typeof(req.body[obj])==='object'){
                     let i;
-                    var q = Object.keys(obj);
+                    var q = Object.keys(req.body[obj]);
                     for(i=0; i< q.length;i++){
-                        if(typeof(orderInterface[q])!==typeof(obj.q)) return res.status(500).send({message:`Bad format for ${keys[keyBody]}. It should be ${orderInterface[obj]}.`, success: false, date: Date()});
+                        console.log(req.body[obj][q[i]], orderInterface[obj][q[i]])
+                        if(orderInterface[obj][q[i]]!==typeof(req.body[obj][q[i]])) return res.status(500).send({message:`Bad format for ${keys[keyBody]}. It should be ${orderInterface[obj][q[i]]}.`, success: false, date: Date()});
                     }
                 }else
                     if(orderInterface[obj] !== typeof(req.body[obj])) return res.status(500).send({message:`Bad format for ${keys[keyBody]}. It should be ${orderInterface[obj]}.`, success: false, date: Date()});
@@ -54,13 +56,14 @@ async function createOrder(req, res){
         const shops = await promiseToCountShops(products);
         console.log(shops)
         const order = new Order({
+            userName: name,
             user: userId,
             status,phone: phoneNumber, products, shops,paymentMethod, address, subtotal, tip, notes, total
         })
         const orderSaved = await order.save();
         return res.status(200).send({message:'Order saved successfully.', success: true, orderSaved, date: Date()});
     } catch (error) {
-        return res.status(500).send({message:'Error saving order.', error,success: false, date: Date()});
+        return res.status(404).send({message:'Error saving order.', error,success: false, date: Date()});
     }
 }
 const promiseToFindProducts = (products) =>{

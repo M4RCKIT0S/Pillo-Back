@@ -143,14 +143,15 @@ async function edit(req, res){
         var subtotal = 0;
         var shoppingChart = await ShoppingCart.findOne({user: id});
         if(!shoppingChart) return res.status(404).send({message:'This user doesn´t have a shopping chart.', success: false, date: Date()});
+        subtotal = shoppingChart.subtotal;
         var addPromise = new Promise(async (resolve, reject)=>{
             if(addProducts){
-                for(var k =0;k<addProducts.length;k++){
-                    var obj = addProducts[k], index = k;
+                let queryPush = [];
+                let querySet = {};
+                for(var indice =0;indice<addProducts.length;indice++){
+                    var obj = addProducts[indice], index = indice;
                     var productId = obj.productId;
                     let product = await Product.findOne({_id: productId}).exec();
-                    let queryPush = {};
-                    let querySet = {};
                     if(product.variants && obj.variant){
                       //para recorrer el array de variantes del producto
                       var found = false;
@@ -197,36 +198,18 @@ async function edit(req, res){
                           reject("No such quantity availeable.");
                         }
                       }else{
-                          var x =0;
-                          var encontrado = false;
-                          while(x< product.variants.length && !encontrado){
-                            if(
-                                obj.variant.color === product.variants[x].color &&
-                                obj.variant.size === product.variants[x].size &&
-                                obj.variant.cool === product.variants[x].cool &&
-                                obj.variant.type === product.variants[x].type &&
-                                obj.variant.dimension === product.variants[x].dimension &&
-                                obj.variant.measure === product.variants[x].measure) {
-                                encontrado = true;
-                              }
-                              if(!encontrado )x++
-                          }
-                          if(encontrado){
-                              if(product.variants[x].stock - obj.quantity >= 0 && product.maxOrder - obj.quantity >= 0){
-                                  queryPush = {...queryPush, products: obj};
-                                  subtotal = shoppingChart.subtotal + obj.quantity * product.variants[x].price;
+                              if(product.variants[k].stock - obj.quantity >= 0 && product.maxOrder - obj.quantity >= 0){
+                                  queryPush.push(obj);
+                                  subtotal += obj.quantity * product.variants[k].price;
                               }else{
                                   reject('No such quantity availeable.');
                               }
-                          }else{
-                              reject('No se ajusta a ninguna variante.');
-                          }
                       }
                     }else{     
                         var j =0;
                         var found2 = false;
                         while( j < shoppingChart.products.length && !found2){
-                            if(obj.productId == shoppingChart.products[j].productId ){
+                            if(JSON.stringify(obj.productId) === JSON.stringify(shoppingChart.products[j].productId) ){
                                     found2 = true;
                                 }
                             if(!found2) j++;
@@ -243,8 +226,8 @@ async function edit(req, res){
                         }   else{
                             console.log(product.stock, obj.quantity, product.maxOrder)
                             if(product.stock - obj.quantity >=0 && product.maxOrder - obj.quantity >=0){
-                                subtotal = shoppingChart.subtotal+ obj.quantity*product.price;
-                                queryPush = {...queryPush, products: obj};
+                                subtotal +=  obj.quantity*product.price;
+                                queryPush.push(obj);
                             }else{
                                 reject('No such quantity availeable.x');
                             }
@@ -253,7 +236,7 @@ async function edit(req, res){
                     }
                     if(index - addProducts.length === -1){
                         console.log(querySet, queryPush)
-                        resolve({$push: queryPush, $set: {...querySet, subtotal: subtotal}});
+                        resolve({$addToSet:{products: {$each: queryPush}}, $set: {...querySet, subtotal: subtotal}});
                     }
                 }
             }else{
@@ -354,7 +337,7 @@ async function edit(req, res){
         const queryAdd = await addPromise;
         var shoppingChartUpdated1, shoppingChartUpdated2;
         if(queryAdd) {
-            console.log('query: '+queryAdd, subtotal)
+            console.log('query: '+queryAdd, subtotal) 
             shoppingChartUpdated1 = await ShoppingCart.findOneAndUpdate({user: id},{...queryAdd},{new: true});
             shoppingChart = shoppingChartUpdated1;
         }
