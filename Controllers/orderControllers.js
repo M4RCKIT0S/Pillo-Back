@@ -237,9 +237,10 @@ async function getOrdersUser(req, res){
 
 async function getAllOrders(req, res){
     try{
-        const orders = await Order.find();
-        if(!orders) return res.status(404).send({message:'No orders found.', success: false , date: Date()});
-        return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
+        const orders = await Order.find().populate([{path:'products',populate:{ path:'productId'}}, {path:'user',select:'name'}]).then((orders) =>{
+            return res.status(200).send({message:'Orders found successfully.', success: true, orders, date:Date()});
+
+        });        if(!orders) return res.status(404).send({message:'No orders found.', success: false , date: Date()});
     }catch(error){
         return res.status(500).send({message:'Error finding orders.', error,success: false, date:Date()});
     }
