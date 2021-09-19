@@ -7,52 +7,55 @@ const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("pillo_app");
 
 const uploadSingleImage = async(req, res, path)=>{
-    console.log(req)
-    return new Promise(async(resolve, reject)=>{
         try {
 
             if (!req.file) {
-              reject('Please upload a file.');
+              return('Please upload a file.');
             }
-            
+
+
             // Create a new blob in the bucket and upload the file data.
-            const blob = bucket.file(`${path}/${req.file.originalname}`);
+            const blob = bucket.file(`${path}/${formatURL(req.file.originalname)}`);
             const blobStream = blob.createWriteStream({
               resumable: false,
             });
         
             blobStream.on("error", (err) => {
-              reject(err.message);
+              return(err.message);
             });
-        
+
+            let publicUrl  = format(
+              `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+            );
+
             blobStream.on("finish", async (data) => {
               // Create URL for directly file access via HTTP.
-              const publicUrl = format(
-                `https://storage.googleapis.com/${bucket.name}/${blob.name}`
-              );
+              
         
               try {
                 // Make the file public
-                await bucket.file(`${path}/${req.file.originalname}`).makePublic();
+                await bucket.file(`${path}/${formatURL(req.file.originalname)}`).makePublic();
               } catch {
                 return res.status(500).send({
                   message:
-                    `Uploaded the file successfully: ${req.file.originalname}, but public access is denied!`,
+                    `Uploaded the file successfully: ${formatURL(req.file.originalname)}, but public access is denied!`,
                   url: publicUrl,
                 });
               }
         
-              resolve(publicUrl);
             });
         
             blobStream.end(req.file.buffer);
+            
+            return publicUrl;
+
           } catch (err) {
             if (err.code == "LIMIT_FILE_SIZE") {
-               reject("File size cannot be larger than 2MB!")
+              return("File size cannot be larger than 2MB!")
               }
-              reject(`Could not upload the file. ${err}`);
+              return(`Could not upload the file. ${err}`);
           }
-    })
+    
 }
 
 const uploadMultipleImages = async (files, path)=>{
@@ -68,7 +71,7 @@ const uploadMultipleImages = async (files, path)=>{
           files.forEach(file =>{
             
             // Create a new blob in the bucket and upload the file data.
-            const blob = bucket.file(`${path}/${file.originalname}`);
+            const blob = bucket.file(`${path}/${formatURL(file.originalname)}`);
             const blobStream = blob.createWriteStream({
               resumable: false,
             });
@@ -89,13 +92,13 @@ const uploadMultipleImages = async (files, path)=>{
 
               try {
                 // Make the file public
-                await bucket.file(`${path}/${file.originalname}`).makePublic();
+                await bucket.file(`${path}/${formatURL(file.originalname)}`).makePublic();
                 
           
               } catch {
                 return res.status(500).send({
                   message:
-                    `Uploaded the file successfully: ${file.originalname}, but public access is denied!`,
+                    `Uploaded the file successfully: ${formatURL(file.originalname)}, but public access is denied!`,
                   url: publicUrl,
                 });
               }
@@ -117,11 +120,33 @@ const uploadMultipleImages = async (files, path)=>{
 
 
 const deleteImage= async(path)=>{
-  console.log(path);
   return new Promise(async(resolve, reject)=>{
     await bucket.file(path).delete().then(()=> resolve()).catch(()=> reject('Error deleting photo.'));
   })
 }
+
+
+const formatURL = (text) =>{
+  var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç", 
+      to   = "AAAAAEEEEIIIIOOOOUUUUaaaaaeeeeiiiioooouuuunncc",
+      mapping = {};
+ 
+  for(var i = 0, j = from.length; i < j; i++ )
+      mapping[ from.charAt( i ) ] = to.charAt( i );
+ 
+  var ret = [];
+  for( var i = 0, j = text.length; i < j; i++ ) {
+      var c = text.charAt( i );
+      if( mapping.hasOwnProperty( text.charAt( i ) ) )
+          ret.push( mapping[ c ] );
+      else
+          ret.push( c );
+  }      
+  return ret.join( '' ).replace( /[^-A-Za-z0-9.]+/g, '_' ).toLowerCase();
+}
+
+
+
 module.exports = {
   uploadSingleImage,
   uploadMultipleImages,
