@@ -73,7 +73,6 @@ async function updateImage(req, res){
     const {categoryId, path} = req.body;
     try{
         const imageUrl = await uploadSingleImage(req, res, path);
-        console.log("Ey,la url es", imageUrl)        
         const category = await Category.findByIdAndUpdate(categoryId,{$set:{image:imageUrl}},{new: true});
         if(!category) return res.status(404).send({message:'No category found.', success: false, date: Date()});
         return res.status(200).send({message:'Category photo updated successfully.', category, success: true, date: Date()});
